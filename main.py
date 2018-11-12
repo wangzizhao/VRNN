@@ -25,12 +25,12 @@ if __name__ == "__main__":
 
 	batch_size = 16
 	lr = 1e-4
-	epoch = 10
+	epoch = 100
 
 	n_train = 5	* batch_size
 	n_test  = 1 * batch_size
 
-	seed = 0 	# also used in sklearn.utils.shuffle
+	seed = 0
 	tf.set_random_seed(seed)
 	np.random.seed(seed)
 
@@ -43,6 +43,9 @@ if __name__ == "__main__":
 	prior_Dhs = [100]
 	enc_Dhs = [100]
 	decoder_Dhs = [100]
+
+	initial_state_trainable = False,
+	sigma_min = 1e-9
 
 	# printing and data saving params
 	print_freq = 1
@@ -62,7 +65,9 @@ if __name__ == "__main__":
 	myVRNNCell = VRNNCell(Dx, Dh, Dz,
 						  x_ft_Dhs, z_ft_Dhs,
 						  prior_Dhs, enc_Dhs, decoder_Dhs)
-	model = VRNN_model(myVRNNCell, batch_size)
+	model = VRNN_model(myVRNNCell, batch_size,
+					   initial_state_trainable = initial_state_trainable,
+					   sigma_min = sigma_min)
 
 	output, last_state = model.get_output(obs)
 	loss = model.get_loss(obs, output)
@@ -134,7 +139,6 @@ if __name__ == "__main__":
 
 
 	if store_res == True:
-		plot_loss(RLT_DIR, loss_trains, loss_tests)
 
 		params_dict = {"time":time,
 					   "batch_size":batch_size,
@@ -146,10 +150,12 @@ if __name__ == "__main__":
 					 "loss_tests": loss_tests}
 		data_dict = {"params_dict":params_dict,
 					 "loss_dict":loss_dict}
-		with open(RLT_DIR + 'data.p', 'wb') as f:
-			pickle.dump(data_dict, f)
+		with open(RLT_DIR + 'data.json', 'w') as f:
+			json.dump(data_dict, f, indent = 4, cls = NumpyEncoder)
 
 		learned_val_dict = {"prediction":prediction_val}
 		data_dict["learned_val_dict"] = learned_val_dict
-		with open(RLT_DIR + 'data.json', 'w') as f:
-			json.dump(data_dict, f, indent = 4, cls = NumpyEncoder)
+		with open(RLT_DIR + 'data.p', 'wb') as f:
+			pickle.dump(data_dict, f)
+
+		plot_loss(RLT_DIR, loss_trains, loss_tests)

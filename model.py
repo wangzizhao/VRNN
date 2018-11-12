@@ -168,10 +168,13 @@ class VRNNCell(tf.contrib.rnn.LSTMBlockCell):
 		return (prior_mu, prior_sigma, enc_mu, enc_sigma, dec_mu, dec_sigma, x_prediction), next_state
 
 class VRNN_model():
-	def __init__(self, VRNNCell, batch_size, initial_state_trainable = False):
+	def __init__(self, VRNNCell, batch_size, 
+				 initial_state_trainable = False,
+				 sigma_min = 1e-9):
 		self.VRNNCell = VRNNCell
 		self.batch_size = batch_size
 		self.initial_state_trainable = initial_state_trainable
+		self.sigma_min = sigma_min
 
 	def get_output(self, Input_BxTxDx):
 		"""
@@ -190,8 +193,6 @@ class VRNN_model():
 		Inputs = tf.unstack(Input_BxTxDx, axis = 1)
 		outputs, last_state = tf.nn.static_rnn(self.VRNNCell, Inputs, initial_state = initial_state)
 
-		# outputs, last_state = tf.nn.dynamic_rnn(self.VRNNCell, Input_BxTxDx, initial_state = initial_state)
-
 		names = ["prior_mu", "prior_sigma", "enc_mu", "enc_sigma", "dec_mu", "dec_sigma", "x_prediction"]
 		outputs_reshaped = []
 		for i, name in enumerate(names):
@@ -203,7 +204,7 @@ class VRNN_model():
 	def get_loss(self, Input, output):
 		def gaussian_log_prob(x, mu, sigma):
 			with tf.variable_scope("gaussian_log_prob"):
-				scale_diag = tf.maximum(sigma, 1e-0, name = "scale_diag")
+				scale_diag = tf.maximum(sigma, self.sigma_min, name = "scale_diag")
 				mvn = tfd.MultivariateNormalDiag(loc = mu, scale_diag = scale_diag,
 												 validate_args=True,
 												 allow_nan_stats = False, 
@@ -212,12 +213,12 @@ class VRNN_model():
 
 		def KL_gauss_gauss(mu1, sigma1, mu2, sigma2):
 			with tf.variable_scope("KL_gauss_gauss"):
-				sigma1 = tf.maximum(1e-0, sigma1)
-				sigma2 = tf.maximum(1e-0, sigma2)
+				sigma1 = tf.maximum(self.sigma_min, sigma1)
+				sigma2 = tf.maximum(self.sigma_min, sigma2)
 				return tf.reduce_sum(0.5 * 
 										(
 											2 * tf.log(sigma2, name="log_sigma2") 
-										  - 2 * tf.log(sigma1, name="log_sigma2")
+										  - 2 * tf.log(sigma1, name="log_sigma1")
 										  + (sigma1**2 + (mu1 - mu2)**2) / sigma2**2
 										  - 1
 										), 
@@ -227,7 +228,7 @@ class VRNN_model():
 		KL_loss = KL_gauss_gauss(enc_mu, enc_sigma, prior_mu, prior_sigma)
 		log_prob_loss = gaussian_log_prob(Input, dec_mu, dec_sigma)
 
-		return tf.reduce_mean(KL_loss - log_prob_loss, name = "loss")
+		return tf.log(tf.reduce_mean(KL_loss - log_prob_loss), name = "loss")
 
 	def get_prediction(self, output):
 		return output[-1]
