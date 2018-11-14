@@ -8,6 +8,9 @@ import tensorflow as tf
 from model import VRNNCell, VRNN_model
 from data import get_stock_data
 from result_saving import *
+from sampler import create_train_test_dataset
+from transformation import *
+from distribution import *
 
 # for data saving stuff
 import sys
@@ -35,9 +38,9 @@ if __name__ == "__main__":
 	np.random.seed(seed)
 
 	# model hyperparameters
-	Dx = 6
+	Dx = 2
 	Dh = 50
-	Dz = 100
+	Dz = 2
 	x_ft_Dhs = [100]
 	z_ft_Dhs = [100]
 	prior_Dhs = [100]
@@ -57,7 +60,52 @@ if __name__ == "__main__":
 
 	# ============================================= dataset part ============================================= #
 	stock_idx_name = "dow_jones" # or "nasdaq" or "sp_500"
-	obs_train, obs_test = get_stock_data(stock_idx_name, time, n_train, n_test)
+	#obs_train, obs_test = get_stock_data(stock_idx_name, time, n_train, n_test)
+
+	#define transition f and emission g
+
+	#f:fhn, g:linear
+	#Dz:2, Dx:10
+	# fhn_params = (1.0, 0.95, 0.05, 1.0, 0.15)
+	# f_sample_tran = fhn.fhn_transformation(fhn_params)
+	# f_sample_dist = dirac_delta.dirac_delta(f_sample_tran)
+
+	# linear_params = np.array([[0.99,0.01], [0.91,0.09], [0.8, 0.2], [0.7, 0.3], [0.6, 0.4], [0.5, 0.5], [0.4, 0.6], [0.3, 0.7], [0.2, 0.8], [0.1, 0.9]])
+	# g_sample_tran = linear.linear_transformation(linear_params)
+	# g_sample_dist = poisson.poisson(g_sample_tran)
+
+	#f:lorez, g:linear
+	#Dz:3, Dx:10
+	# lorenz_params = (10.0, 28.0, 8.0/3.0, 0.01)
+	# f_sample_tran = lorenz.lorenz_transformation(lorenz_params)
+	# f_sample_dist = dirac_delta.dirac_delta(f_sample_tran)
+
+	# linear_params = np.array([[0.95,0.05, 0.01], [0.8,0.15, 0.05], [0.7, 0.1, 0.2], [0.5, 0.4, 0.1], [0.6, 0.1, 0.3], [0.4, 0.2, 0.4], [0.4, 0.5, 0.1], [0.3, 0.2, 0.5], [0.2, 0.7, 0.1], [0.1, 0.1, 0.8]])
+	# g_sample_tran = linear.linear_transformation(linear_params)
+	# g_sample_dist = poisson.poisson(g_sample_tran)
+
+	#f:linear, g:linear,poisson
+	#Dz:2, Dx:2
+	# f_linear_params = np.array([[0.95,0],[0, 0.83]])
+	# f_sample_tran = linear.linear_transformation(f_linear_params)
+	# f_sample_dist = dirac_delta.dirac_delta(f_sample_tran)
+
+	# g_linear_params = np.array([[0.8,0.2],[0.3, 0.7]])
+	# g_sample_tran = linear.linear_transformation(g_linear_params)
+	# g_sample_dist = poisson.poisson(g_sample_tran)
+
+	#f:linear, g:linear,mvn
+	#Dz:2, Dx:2
+	f_linear_params = np.array([[0.95,0],[0, 0.83]])
+	f_sample_tran = linear.linear_transformation(f_linear_params)
+	f_sample_dist = dirac_delta.dirac_delta(f_sample_tran)
+
+	g_linear_params = np.array([[0.8,0.2],[0.3, 0.7]])
+	g_sample_tran = linear.linear_transformation(g_linear_params)
+	mvn_sigma = np.array([[1,0],[0,1]])
+	g_sample_dist = mvn.mvn(g_sample_tran, mvn_sigma)
+
+	hidden_train, obs_train, hidden_test, obs_test = create_train_test_dataset(n_train, n_test, time, Dz, Dx, f_sample_dist, g_sample_dist, None, -3, 3)
 
 	# ============================================== model part ============================================== #
 	obs = tf.placeholder(tf.float32, shape=(batch_size, time, Dx), name = "obs")
