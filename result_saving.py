@@ -47,7 +47,10 @@ def create_RLT_DIR(Experiment_params):
 
     RLT_DIR = os.getcwd().replace("\\", "/") + "/" + (local_rlt_root + cur_date + params_str) + "/"
 
-    if not os.path.exists(RLT_DIR): os.makedirs(RLT_DIR)
+    if not os.path.exists(RLT_DIR): 
+        os.makedirs(RLT_DIR)
+        os.makedirs(RLT_DIR + 'hidden_compare/')
+        os.makedirs(RLT_DIR + 'expression_compare/')
 
     return RLT_DIR
 
@@ -59,3 +62,23 @@ def plot_loss(RLT_DIR, loss_trains, loss_tests):
     sns.despine()
     plt.savefig(RLT_DIR + "loss")
     plt.show()
+
+def plot_hidden(RLT_DIR, generated_hidden, predicted_hidden, idx, dim):
+    plt.figure()
+    plt.plot(generated_hidden)
+    plt.plot(predicted_hidden)
+    plt.legend(['generated_hidden', 'predicted_hidden'])
+    sns.despine()
+    plt.savefig(RLT_DIR + 'hidden_compare/hidden_idx_' + str(idx) + '_dim_' + str(dim))
+    plt.close()
+    #plt.show()
+
+def plot_expression(RLT_DIR, generated_expression, predicted_expression, idx, dim):
+    plt.figure()
+    plt.plot(generated_expression)
+    plt.plot(predicted_expression)
+    plt.legend(['generated_expression', 'predicted_expression'])
+    sns.despine()
+    plt.savefig(RLT_DIR + 'expression_compare/expression_idx_' + str(idx) + '_dim_' + str(dim))
+    plt.close()
+    #plt.show()
