@@ -49,8 +49,6 @@ def create_RLT_DIR(Experiment_params):
 
     if not os.path.exists(RLT_DIR): 
         os.makedirs(RLT_DIR)
-        os.makedirs(RLT_DIR + 'hidden_compare/')
-        os.makedirs(RLT_DIR + 'expression_compare/')
 
     return RLT_DIR
 
@@ -63,22 +61,28 @@ def plot_loss(RLT_DIR, loss_trains, loss_tests):
     plt.savefig(RLT_DIR + "loss")
     plt.show()
 
-def plot_hidden(RLT_DIR, generated_hidden, predicted_hidden, idx, dim):
-    plt.figure()
-    plt.plot(generated_hidden)
-    plt.plot(predicted_hidden)
-    plt.legend(['generated_hidden', 'predicted_hidden'])
-    sns.despine()
-    plt.savefig(RLT_DIR + 'hidden_compare/hidden_idx_' + str(idx) + '_dim_' + str(dim))
-    plt.close()
-    #plt.show()
+def plot_hidden(RLT_DIR, generated_hidden, predicted_hidden):
+    if not os.path.exists(RLT_DIR + 'hidden_compare/'): os.makedirs(RLT_DIR + 'hidden_compare/')
+    for i in range(generated_hidden.shape[0]):
+        for j in range(generated_hidden.shape[-1]):
+            plt.figure()
+            plt.plot(generated_hidden[i, :, j])
+            plt.plot(predicted_hidden[i, :, j])
+            plt.legend(['generated_hidden', 'predicted_hidden'])
+            sns.despine()
+            plt.savefig(RLT_DIR + 'hidden_compare/hidden_idx_{}_dim_{}'.format(i, j))
+            plt.close()
+            #plt.show()
 
-def plot_expression(RLT_DIR, generated_expression, predicted_expression, idx, dim):
-    plt.figure()
-    plt.plot(generated_expression)
-    plt.plot(predicted_expression)
-    plt.legend(['generated_expression', 'predicted_expression'])
-    sns.despine()
-    plt.savefig(RLT_DIR + 'expression_compare/expression_idx_' + str(idx) + '_dim_' + str(dim))
-    plt.close()
-    #plt.show()
+def plot_expression(RLT_DIR, predicted_expression, generated_expression):
+    if not os.path.exists(RLT_DIR + 'expression_compare/'): os.makedirs(RLT_DIR + 'expression_compare/')
+    for i in range(generated_expression.shape[0]):
+        for j in range(generated_expression.shape[-1]):
+            plt.figure()
+            plt.plot(generated_expression[i, :, j])
+            plt.plot(predicted_expression[i, :, j])
+            plt.legend(['generated_expression', 'predicted_expression'])
+            sns.despine()
+            plt.savefig(RLT_DIR + 'expression_compare/expression_idx_{}_dim_{}'.format(i, j))
+            plt.close()
+            #plt.show()

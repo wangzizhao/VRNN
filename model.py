@@ -228,10 +228,14 @@ class VRNN_model():
 		KL_loss = KL_gauss_gauss(enc_mu, enc_sigma, prior_mu, prior_sigma)
 		log_prob_loss = gaussian_log_prob(Input, dec_mu, dec_sigma)
 
-		return tf.log(tf.reduce_mean(KL_loss - log_prob_loss), name = "loss")
+		return tf.reduce_mean(KL_loss - log_prob_loss, name = "loss")
+		return tf.log(tf.reduce_mean(KL_loss - log_prob_loss, name = "loss"), name = "loss")
 
 	def get_prediction(self, output):
 		return output[-1]
+
+	def get_hidden(self, output):
+		return output[2]
 
 	def get_loss_val(self, sess, loss, obs, obs_set):
 		total_loss = 0
