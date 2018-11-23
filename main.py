@@ -30,7 +30,7 @@ if __name__ == "__main__":
 	batch_size = 16
 
 	lr = 1e-4
-	epoch = 100
+	epoch = 10
 
 	n_train = 50 * batch_size
 	n_test  = 1  * batch_size
@@ -39,7 +39,7 @@ if __name__ == "__main__":
 	tf.set_random_seed(seed)
 	np.random.seed(seed)
 
-	use_stock_data = True
+	use_stock_data = False
 
 	# model hyperparameters
 	if use_stock_data:
@@ -52,9 +52,9 @@ if __name__ == "__main__":
 		enc_Dhs 	= [100, 100, 100]
 		decoder_Dhs = [100, 100, 100]
 	else:
-		Dx = 10
+		Dx = 1
 		Dh = 50
-		Dz = 2
+		Dz = 3
 		x_ft_Dhs = [100]
 		z_ft_Dhs = [100]
 		prior_Dhs = [100]
@@ -72,7 +72,8 @@ if __name__ == "__main__":
 	save_freq = 10
 	saving_num = min([n_train, n_test, 1*batch_size])
 	# rslt_dir_name = "VRNN"
-	rslt_dir_name = "dow_jones"
+	#rslt_dir_name = "dow_jones"
+	rslt_dir_name = "one_dim_obs"
 
 	# ============================================= dataset part ============================================= #
 	if use_stock_data:
@@ -85,22 +86,27 @@ if __name__ == "__main__":
 
 		#f:fhn, g:linear
 		#Dz:2, Dx:10
-		fhn_params = (1.0, 0.95, 0.05, 1.0, 0.15)
-		f_sample_tran = fhn.fhn_transformation(fhn_params)
-		f_sample_dist = dirac_delta.dirac_delta(f_sample_tran)
+		# fhn_params = (1.0, 0.95, 0.05, 1.0, 0.15)
+		# f_sample_tran = fhn.fhn_transformation(fhn_params)
+		# f_sample_dist = dirac_delta.dirac_delta(f_sample_tran)
 
-		linear_params = np.array([[0.99,0.01], [0.91,0.09], [0.8, 0.2], [0.7, 0.3], [0.6, 0.4], [0.5, 0.5], [0.4, 0.6], [0.3, 0.7], [0.2, 0.8], [0.1, 0.9]])
-		g_sample_tran = linear.linear_transformation(linear_params)
-		mvn_sigma = np.eye(10)
-		g_sample_dist = mvn.mvn(g_sample_tran, mvn_sigma)
+		# #linear_params = np.array([[0.99,0.01], [0.91,0.09], [0.8, 0.2], [0.7, 0.3], [0.6, 0.4], [0.5, 0.5], [0.4, 0.6], [0.3, 0.7], [0.2, 0.8], [0.1, 0.9]])
+		# linear_params = np.array([[0,1]])
+		# g_sample_tran = linear.linear_transformation(linear_params)
+		# mvn_sigma = 0.2 * np.eye(1)
+		# g_sample_dist = mvn.mvn(g_sample_tran, mvn_sigma)
 
 		#f:lorez, g:linear
 		#Dz:3, Dx:10
-		# lorenz_params = (10.0, 28.0, 8.0/3.0, 0.01)
-		# f_sample_tran = lorenz.lorenz_transformation(lorenz_params)
-		# f_sample_dist = dirac_delta.dirac_delta(f_sample_tran)
+		lorenz_params = (10.0, 28.0, 8.0/3.0, 0.01)
+		f_sample_tran = lorenz.lorenz_transformation(lorenz_params)
+		f_sample_dist = dirac_delta.dirac_delta(f_sample_tran)
 
-		# linear_params = np.array([[0.95,0.05, 0.01], [0.8,0.15, 0.05], [0.7, 0.1, 0.2], [0.5, 0.4, 0.1], [0.6, 0.1, 0.3], [0.4, 0.2, 0.4], [0.4, 0.5, 0.1], [0.3, 0.2, 0.5], [0.2, 0.7, 0.1], [0.1, 0.1, 0.8]])
+		#linear_params = np.array([[0.95,0.05, 0.01], [0.8,0.15, 0.05], [0.7, 0.1, 0.2], [0.5, 0.4, 0.1], [0.6, 0.1, 0.3], [0.4, 0.2, 0.4], [0.4, 0.5, 0.1], [0.3, 0.2, 0.5], [0.2, 0.7, 0.1], [0.1, 0.1, 0.8]])
+		linear_params = np.random.randn(1,3)
+		g_sample_tran = linear.linear_transformation(linear_params)
+		mvn_sigma = 0.2 * np.eye(1)
+		g_sample_dist = mvn.mvn(g_sample_tran, mvn_sigma)
 		# g_sample_tran = linear.linear_transformation(linear_params)
 		# g_sample_dist = poisson.poisson(g_sample_tran)
 
@@ -225,15 +231,20 @@ if __name__ == "__main__":
 
 
 		#hidden_train(generated hidden variable) compare with output[2] (predicted hidden variable, Batch size * T * Dz)
+
 		if store_res and not use_stock_data:
 			hidden_val = np.zeros((saving_num, time, n_particles, Dz))
 			for i in range(0, saving_num, batch_size):
 				hidden_val[i:i+batch_size] = sess.run(hidden, feed_dict={obs:obs_train[i:i+batch_size]})
 			plot_hidden(RLT_DIR, np.mean(hidden_val, axis = 2), hidden_train[0:saving_num], is_test = False)
+			#plot_hidden_2d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = False)
+			plot_hidden_3d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = False)
 
 			for i in range(0, saving_num, batch_size):
 				hidden_val[i:i+batch_size] = sess.run(hidden, feed_dict={obs:obs_test[i:i+batch_size]})
 			plot_hidden(RLT_DIR, np.mean(hidden_val, axis = 2), hidden_test[0:saving_num], is_test = True)
+			#plot_hidden_2d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = True)
+			plot_hidden_3d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = True)
 
 		if store_res:
 			prediction_val = np.zeros((saving_num, time, n_particles, Dx))
@@ -244,6 +255,12 @@ if __name__ == "__main__":
 			for i in range(0, saving_num, batch_size):
 				prediction_val[i:i+batch_size] = sess.run(prediction, feed_dict={obs:obs_test[i:i+batch_size]})
 			plot_expression(RLT_DIR, np.mean(prediction_val, axis = 2), obs_test[0:saving_num], is_test = True)
+
+		if store_res and not use_stock_data:
+			plot_training(RLT_DIR, hidden_train[0:saving_num], obs_train[0:saving_num], is_test = False)
+			plot_training(RLT_DIR, hidden_test[0:saving_num], obs_test[0:saving_num], is_test = True)
+			# plot_training_3d(RLT_DIR, hidden_train[0:saving_num], obs_train[0:saving_num], is_test = False)
+			# plot_training_3d(RLT_DIR, hidden_test[0:saving_num], obs_test[0:saving_num], is_test = True)
 
 	# ======================================== anther data saving part ======================================== #
 
@@ -258,8 +275,11 @@ if __name__ == "__main__":
 					   "seed":seed}
 		loss_dict = {"loss_trains":loss_trains,
 					 "loss_tests": loss_tests}
+		MSE_dict = {"MSE_trains":MSE_trains,
+					"MSE_tests":MSE_tests}
 		data_dict = {"params_dict":params_dict,
-					 "loss_dict":loss_dict}
+					 "loss_dict":loss_dict,
+					 "MSE_dict":MSE_dict}
 		with open(RLT_DIR + 'data.json', 'w') as f:
 			json.dump(data_dict, f, indent = 4, cls = NumpyEncoder)
 
@@ -273,3 +293,4 @@ if __name__ == "__main__":
 			pickle.dump(data_dict, f)
 
 		plot_loss(RLT_DIR, loss_trains, loss_tests)
+		plot_MSE(RLT_DIR, MSE_trains, MSE_tests)
