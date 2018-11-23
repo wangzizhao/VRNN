@@ -61,28 +61,28 @@ def plot_loss(RLT_DIR, loss_trains, loss_tests):
     plt.savefig(RLT_DIR + "loss")
     plt.show()
 
-def plot_hidden(RLT_DIR, generated_hidden, predicted_hidden):
+def plot_hidden(RLT_DIR, predicted_hidden, true_hidden):
     if not os.path.exists(RLT_DIR + 'hidden_compare/'): os.makedirs(RLT_DIR + 'hidden_compare/')
-    for i in range(generated_hidden.shape[0]):
-        for j in range(generated_hidden.shape[-1]):
+    for i in range(true_hidden.shape[0]):
+        for j in range(true_hidden.shape[-1]):
             plt.figure()
-            plt.plot(generated_hidden[i, :, j])
+            plt.plot(true_hidden[i, :, j])
             plt.plot(predicted_hidden[i, :, j])
-            plt.legend(['generated_hidden', 'predicted_hidden'])
+            plt.legend(['true_hidden', 'predicted_hidden'])
             sns.despine()
             plt.savefig(RLT_DIR + 'hidden_compare/hidden_idx_{}_dim_{}'.format(i, j))
             plt.close()
             #plt.show()
 
-def plot_expression(RLT_DIR, predicted_expression, generated_expression):
-    if not os.path.exists(RLT_DIR + 'expression_compare/'): os.makedirs(RLT_DIR + 'expression_compare/')
-    for i in range(generated_expression.shape[0]):
-        for j in range(generated_expression.shape[-1]):
+def plot_expression(RLT_DIR, predicted_obs, true_obs):
+    if not os.path.exists(RLT_DIR + 'obs_compare/'): os.makedirs(RLT_DIR + 'obs_compare/')
+    for i in range(true_obs.shape[0]):
+        for j in range(true_obs.shape[-1]):
             plt.figure()
-            plt.plot(generated_expression[i, :, j])
-            plt.plot(predicted_expression[i, :, j])
-            plt.legend(['generated_expression', 'predicted_expression'])
+            plt.plot(true_obs[i, :, j])
+            plt.plot(predicted_obs[i, :, j])
+            plt.legend(['true_obs', 'predicted_obs'])
             sns.despine()
-            plt.savefig(RLT_DIR + 'expression_compare/expression_idx_{}_dim_{}'.format(i, j))
+            plt.savefig(RLT_DIR + 'obs_compare/expression_idx_{}_dim_{}'.format(i, j))
             plt.close()
             #plt.show()

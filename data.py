@@ -10,7 +10,9 @@ def get_stock_data(stock_idx_name, time, n_train, n_test, Dx = 5):
 	# remove the first row which is column names
 	# remove the first column which is date
 	# convert to float 32
-	data = np.array([data_pt[1:1+Dx] for data_pt in data_list[1:]], dtype=np.float32)		
+	data = np.array([data_pt[1:1+Dx] for data_pt in data_list[1:]], dtype=np.float32)
+	data_scale = np.mean(data, axis = 0)
+	data /= data_scale
 
 	obs_train = np.zeros((n_train, time, Dx))	# Open, High, Low, Close, Adj Close, Volume
 	obs_test  = np.zeros((n_test,  time, Dx))

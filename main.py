@@ -24,16 +24,18 @@ if __name__ == "__main__":
 
 	# ============================================ parameter part ============================================ #
 	# training hyperparameters
-	time = 30
+	time = 50
 
+	n_particles = 1
 	batch_size = 16
+
 	lr = 1e-4
-	epoch = 2
+	epoch = 100
 
-	n_train = 1 * batch_size
-	n_test  = 1 * batch_size
+	n_train = 50 * batch_size
+	n_test  = 1  * batch_size
 
-	seed = 1
+	seed = 0
 	tf.set_random_seed(seed)
 	np.random.seed(seed)
 
@@ -41,7 +43,7 @@ if __name__ == "__main__":
 
 	# model hyperparameters
 	if use_stock_data:
-		Dx = 5
+		Dx = 6
 		Dh = 100
 		Dz = 100
 		x_ft_Dhs 	= [100, 100]
@@ -76,8 +78,6 @@ if __name__ == "__main__":
 	if use_stock_data:
 		stock_idx_name = "dow_jones" # or "nasdaq" or "sp_500"
 		obs_train, obs_test = get_stock_data(stock_idx_name, time, n_train, n_test, Dx)
-		obs_train /= 1e4
-		obs_test /= 1e4
 		hidden_train = hidden_test = None
 	else:
 
@@ -131,10 +131,13 @@ if __name__ == "__main__":
 	obs = tf.placeholder(tf.float32, shape=(batch_size, time, Dx), name = "obs")
 
 	myVRNNCell = VRNNCell(Dx, Dh, Dz,
+						  batch_size,
+						  n_particles,
 						  x_ft_Dhs, z_ft_Dhs,
 						  prior_Dhs, enc_Dhs, decoder_Dhs)
 	model = VRNN_model(myVRNNCell,
 					   batch_size,
+					   n_particles,
 					   initial_state_all_zero = initial_state_all_zero,
 					   is_lstm_Dh = is_lstm_Dh,
 					   sigma_min = sigma_min)
@@ -150,11 +153,12 @@ if __name__ == "__main__":
 
 	# =========================================== data saving part =========================================== #
 	if store_res == True:
-		experiment_params = {"time":time, 
+		experiment_params = {"time":time,
+							 "n_particles":n_particles,
 							 "batch_size":batch_size,
-							 "lr":lr, 
-							 "epoch":epoch, 
-							 "seed":seed, 
+							 "lr":lr,
+							 "epoch":epoch,
+							 "seed":seed,
 							 "n_train":n_train,
 							 "rslt_dir_name":rslt_dir_name}
 		RLT_DIR = create_RLT_DIR(experiment_params)
@@ -206,17 +210,17 @@ if __name__ == "__main__":
 
 
 		#hidden_train(generated hidden variable) compare with output[2] (predicted hidden variable, Batch size * T * Dz)
-		if store_res and hidden_train is not None:
-			hidden_val = np.zeros((saving_num, time, Dz))
+		if store_res and not use_stock_data:
+			hidden_val = np.zeros((saving_num, time, n_particles, Dz))
 			for i in range(0, saving_num, batch_size):
 				hidden_val[i:i+batch_size] = sess.run(hidden, feed_dict={obs:obs_train[i:i+batch_size]})
-			plot_hidden(RLT_DIR, hidden_val, hidden_train[0:saving_num])
+			plot_hidden(RLT_DIR, np.mean(hidden_val, axis = 2), hidden_train[0:saving_num])
 
 		if store_res:
-			prediction_val = np.zeros((saving_num, time, Dx))
+			prediction_val = np.zeros((saving_num, time, n_particles, Dx))
 			for i in range(0, saving_num, batch_size):
 				prediction_val[i:i+batch_size] = sess.run(prediction, feed_dict={obs:obs_train[i:i+batch_size]})
-			plot_expression(RLT_DIR, prediction_val, obs_train[0:saving_num])
+			plot_expression(RLT_DIR, np.mean(prediction_val, axis = 2), obs_train[0:saving_num])
 
 	# ======================================== anther data saving part ======================================== #
 
@@ -236,7 +240,11 @@ if __name__ == "__main__":
 		with open(RLT_DIR + 'data.json', 'w') as f:
 			json.dump(data_dict, f, indent = 4, cls = NumpyEncoder)
 
-		learned_val_dict = {"prediction":prediction_val}
+		if use_stock_data:
+			learned_val_dict = {"prediction":prediction_val}
+		else:
+			learned_val_dict = {"hidden_val":hidden_val,
+								"prediction":prediction_val}
 		data_dict["learned_val_dict"] = learned_val_dict
 		with open(RLT_DIR + 'data.p', 'wb') as f:
 			pickle.dump(data_dict, f)
