@@ -71,7 +71,6 @@ if __name__ == "__main__":
 	store_res = True
 	save_freq = 10
 	saving_num = min([n_train, n_test, 1*batch_size])
-	# rslt_dir_name = "VRNN"
 	#rslt_dir_name = "dow_jones"
 	rslt_dir_name = "one_dim_obs"
 
@@ -286,10 +285,17 @@ if __name__ == "__main__":
 
 		if use_stock_data:
 			learned_val_dict = {"prediction":prediction_val}
+			true_val_dict = {"obs_train":obs_train[0:saving_num],
+							 "obs_test":obs_test[0:saving_num]}
 		else:
 			learned_val_dict = {"hidden_val":hidden_val,
 								"prediction":prediction_val}
+			true_val_dict = {"obs_train":obs_train[0:saving_num],
+							 "obs_test":obs_test[0:saving_num],
+							 "hidden_train":hidden_train[0:saving_num],
+							 "hidden_test":hidden_test[0:saving_num]}
 		data_dict["learned_val_dict"] = learned_val_dict
+		data_dict["true_val_dict"] = true_val_dict
 		with open(RLT_DIR + 'data.p', 'wb') as f:
 			pickle.dump(data_dict, f)
 
