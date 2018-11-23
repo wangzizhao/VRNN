@@ -302,7 +302,7 @@ class VRNN_model():
 			KL_loss = KL_gauss_gauss(enc_mu, enc_sigma, prior_mu, prior_sigma)
 
 			loss = tf.reduce_mean(dec_log_prob - KL_loss, name = "loss")
-			
+
 		log_loss = tf.log(loss, name = "log_loss")
 		return loss
 		return log_loss
@@ -312,6 +312,14 @@ class VRNN_model():
 
 	def get_hidden(self, output):
 		return output[2]
+
+	def get_MSE(self, sess, prediction, obs, obs_set):
+		total_MSE = 0
+		for i in range(0, len(obs_set), self.batch_size):
+			prediction_val = sess.run(prediction, feed_dict = {obs:obs_set[i:i+self.batch_size]})
+			prediction_val = np.mean(prediction_val, axis = 2)
+			total_MSE += np.mean((prediction_val - obs_set[i:i+self.batch_size])**2)
+		return total_MSE/(len(obs_set)/self.batch_size)
 
 	def get_loss_val(self, sess, loss, obs, obs_set):
 		total_loss = 0

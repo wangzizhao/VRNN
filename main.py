@@ -39,7 +39,7 @@ if __name__ == "__main__":
 	tf.set_random_seed(seed)
 	np.random.seed(seed)
 
-	use_stock_data = False
+	use_stock_data = True
 
 	# model hyperparameters
 	if use_stock_data:
@@ -172,6 +172,8 @@ if __name__ == "__main__":
 
 	loss_trains = []
 	loss_tests = []
+	MSE_trains = []
+	MSE_tests = []
 
 	# ============================================= training part ============================================ #
 	with tf.Session() as sess:
@@ -183,11 +185,15 @@ if __name__ == "__main__":
 
 		loss_train = model.get_loss_val(sess, loss, obs, obs_train)
 		loss_test  = model.get_loss_val(sess, loss, obs, obs_test)
-		print("iter {:>3}, train loss: {:>7.3f}, test loss: {:>7.3f}"\
-			.format(0, loss_train, loss_test))
+		MSE_train = model.get_MSE(sess, prediction, obs, obs_train)
+		MSE_test  = model.get_MSE(sess, prediction, obs, obs_test)
+		print("iter {:>3}, train loss: {:>7.3f}, test loss: {:>7.3f}, train MSE: {:>7.3f}, test MSE: {:>7.3f}"\
+			.format(0, loss_train, loss_test, MSE_train, MSE_test))
 
 		loss_trains.append(loss_train)
 		loss_tests.append(loss_test)
+		MSE_trains.append(MSE_train)
+		MSE_tests.append(MSE_test)
 
 		for i in range(epoch):
 			if hidden_train is not None:
@@ -201,11 +207,15 @@ if __name__ == "__main__":
 			if (i+1)%print_freq == 0:
 				loss_train = model.get_loss_val(sess, loss, obs, obs_train)
 				loss_test  = model.get_loss_val(sess, loss, obs, obs_test)
-				print("iter {:>3}, train loss: {:>7.3f}, test loss: {:>7.3f}"\
-					.format(i+1, loss_train, loss_test))
+				MSE_train = model.get_MSE(sess, prediction, obs, obs_train)
+				MSE_test  = model.get_MSE(sess, prediction, obs, obs_test)
+				print("iter {:>3}, train loss: {:>7.3f}, test loss: {:>7.3f}, train MSE: {:>7.3f}, test MSE: {:>7.3f}"\
+					.format(i+1, loss_train, loss_test, MSE_train, MSE_test))
 
 				loss_trains.append(loss_train)
 				loss_tests.append(loss_test)
+				MSE_trains.append(MSE_train)
+				MSE_tests.append(MSE_test)
 
 			if store_res == True and (i+1)%save_freq == 0:
 				if not os.path.exists(RLT_DIR+"model"): os.makedirs(RLT_DIR+"model")
