@@ -28,9 +28,9 @@ if __name__ == "__main__":
 
 	batch_size = 16
 	lr = 1e-4
-	epoch = 100
+	epoch = 2
 
-	n_train = 50 * batch_size
+	n_train = 1 * batch_size
 	n_test  = 1 * batch_size
 
 	seed = 1
@@ -59,11 +59,12 @@ if __name__ == "__main__":
 		enc_Dhs = [100]
 		decoder_Dhs = [100]
 
-	initial_state_trainable = False
+	initial_state_all_zero = False
+	is_lstm_Dh = 50
 	sigma_min = 1e-6
 
 	# printing and data saving params
-	print_freq = 10
+	print_freq = 1
 
 	store_res = True
 	save_freq = 10
@@ -132,8 +133,10 @@ if __name__ == "__main__":
 	myVRNNCell = VRNNCell(Dx, Dh, Dz,
 						  x_ft_Dhs, z_ft_Dhs,
 						  prior_Dhs, enc_Dhs, decoder_Dhs)
-	model = VRNN_model(myVRNNCell, batch_size,
-					   initial_state_trainable = initial_state_trainable,
+	model = VRNN_model(myVRNNCell,
+					   batch_size,
+					   initial_state_all_zero = initial_state_all_zero,
+					   is_lstm_Dh = is_lstm_Dh,
 					   sigma_min = sigma_min)
 
 	output, last_state = model.get_output(obs)
@@ -142,7 +145,7 @@ if __name__ == "__main__":
 	prediction = model.get_prediction(output)
 
 	with tf.name_scope("train"):
-		train_op = tf.train.AdamOptimizer(lr).minimize(loss)
+		train_op = tf.train.AdamOptimizer(lr).minimize(-loss)
 	init = tf.global_variables_initializer()
 
 	# =========================================== data saving part =========================================== #

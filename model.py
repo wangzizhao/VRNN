@@ -12,6 +12,7 @@ class VRNNCell(tf.contrib.rnn.LSTMBlockCell):
 	"""Variational RNN cell."""
 
 	def __init__(self, Dx, Dh, Dz,
+				 self.n_particles = 1,
 				 x_ft_Dhs = None, z_ft_Dhs = None,
 				 prior_Dhs = None, enc_Dhs = None, dec_Dhs = None,
 				 sigma_bias_init = 0.6):
@@ -54,18 +55,18 @@ class VRNNCell(tf.contrib.rnn.LSTMBlockCell):
 					prior_hidden = fully_connected(prior_hidden, prior_Dh, 
 												   weights_initializer=xavier_initializer(uniform=False), 
 												   biases_initializer=tf.constant_initializer(0),
-												   activation_fn = tf.nn.relu,
-												   reuse = tf.AUTO_REUSE, scope = "Dh_{}".format(i))
+												   activation_fn=tf.nn.relu,
+												   reuse=tf.AUTO_REUSE, scope = "Dh_{}".format(i))
 				prior_mu = fully_connected(prior_hidden, self.Dz, 
 										   weights_initializer=xavier_initializer(uniform=False), 
 										   biases_initializer=tf.constant_initializer(0),
-										   activation_fn = None,
-										   reuse = tf.AUTO_REUSE, scope = "mu")
+										   activation_fn=None,
+										   reuse=tf.AUTO_REUSE, scope = "mu")
 				prior_sigma = fully_connected(prior_hidden, self.Dz, 
 											  weights_initializer=xavier_initializer(uniform=False), 
 											  biases_initializer=tf.constant_initializer(self.sigma_bias_init),
-											  activation_fn = tf.nn.softplus,
-											  reuse = tf.AUTO_REUSE, scope = "sigma")
+											  activation_fn=tf.nn.softplus,
+											  reuse=tf.AUTO_REUSE, scope = "sigma")
 
 			with tf.variable_scope("phi_x"):
 				phi_x_hidden = x
@@ -73,13 +74,13 @@ class VRNNCell(tf.contrib.rnn.LSTMBlockCell):
 					phi_x_hidden = fully_connected(phi_x_hidden, phi_x_Dh, 
 												   weights_initializer=xavier_initializer(uniform=False), 
 												   biases_initializer=tf.constant_initializer(0),
-												   activation_fn = tf.nn.relu,
-												   reuse = tf.AUTO_REUSE, scope = "Dh_{}".format(i))
+												   activation_fn=tf.nn.relu,
+												   reuse=tf.AUTO_REUSE, scope = "Dh_{}".format(i))
 				phi_x = fully_connected(phi_x_hidden, self.Dx,
 										weights_initializer=xavier_initializer(uniform=False), 
 										biases_initializer=tf.constant_initializer(0),
-										activation_fn = tf.nn.relu,
-										reuse = tf.AUTO_REUSE, scope = "phi_x")
+										activation_fn=tf.nn.relu,
+										reuse=tf.AUTO_REUSE, scope = "phi_x")
 
 			with tf.variable_scope("encoder"):
 				enc_hidden = tf.concat(values=(phi_x, h), axis = -1)
@@ -87,20 +88,20 @@ class VRNNCell(tf.contrib.rnn.LSTMBlockCell):
 					enc_hidden = fully_connected(enc_hidden, enc_Dh, 
 												 weights_initializer=xavier_initializer(uniform=False), 
 												 biases_initializer=tf.constant_initializer(0),
-												 activation_fn = tf.nn.relu,
-												 reuse = tf.AUTO_REUSE, scope = "Dh_{}".format(i))
+												 activation_fn=tf.nn.relu,
+												 reuse=tf.AUTO_REUSE, scope = "Dh_{}".format(i))
 				enc_mu = fully_connected(enc_hidden, self.Dz, 
 										 weights_initializer=xavier_initializer(uniform=False), 
 										 biases_initializer=tf.constant_initializer(0),
-										 activation_fn = None,
-										 reuse = tf.AUTO_REUSE, scope = "mu")
+										 activation_fn=None,
+										 reuse=tf.AUTO_REUSE, scope = "mu")
 				enc_sigma = fully_connected(enc_hidden, self.Dz, 
 											weights_initializer=xavier_initializer(uniform=False), 
 											biases_initializer=tf.constant_initializer(self.sigma_bias_init),
-											activation_fn = tf.nn.softplus,
-											reuse = tf.AUTO_REUSE, scope = "sigma")
+											activation_fn=tf.nn.softplus,
+											reuse=tf.AUTO_REUSE, scope = "sigma")
 
-			eps = tf.random_normal((x.get_shape().as_list()[0], self.Dz), name = "eps")
+			eps = tf.random_normal(x.get_shape().as_list()[:-1] + [self.n_particles, self.Dz], name = "eps")
 			z = tf.add(enc_mu, tf.multiply(enc_sigma, eps), name = "z")
 
 			with tf.variable_scope("phi_z"):
@@ -109,26 +110,26 @@ class VRNNCell(tf.contrib.rnn.LSTMBlockCell):
 					phi_z_hidden = fully_connected(phi_z_hidden, phi_z_Dh, 
 												   weights_initializer=xavier_initializer(uniform=False), 
 												   biases_initializer=tf.constant_initializer(0),
-												   activation_fn = tf.nn.relu,
-												   reuse = tf.AUTO_REUSE, scope = "Dh_{}".format(i))
+												   activation_fn=tf.nn.relu,
+												   reuse=tf.AUTO_REUSE, scope = "Dh_{}".format(i))
 				phi_z = fully_connected(phi_z_hidden, self.Dz,
 										weights_initializer=xavier_initializer(uniform=False), 
 										biases_initializer=tf.constant_initializer(0),
-										activation_fn = tf.nn.relu,
-										reuse = tf.AUTO_REUSE, scope = "phi_z")
+										activation_fn=tf.nn.relu,
+										reuse=tf.AUTO_REUSE, scope = "phi_z")
 				# for prediction
 				phi_z_prior_hidden = prior_mu
 				for i, phi_z_Dh in enumerate(self.phi_z_Dhs):
 					phi_z_prior_hidden = fully_connected(phi_z_prior_hidden, phi_z_Dh, 
 														 weights_initializer=xavier_initializer(uniform=False), 
 														 biases_initializer=tf.constant_initializer(0),
-														 activation_fn = tf.nn.relu,
-														 reuse = tf.AUTO_REUSE, scope = "Dh_{}".format(i))
+														 activation_fn=tf.nn.relu,
+														 reuse=tf.AUTO_REUSE, scope = "Dh_{}".format(i))
 				phi_z_prior = fully_connected(phi_z_prior_hidden, self.Dz,
 											  weights_initializer=xavier_initializer(uniform=False), 
 											  biases_initializer=tf.constant_initializer(0),
-											  activation_fn = tf.nn.relu,
-											  reuse = tf.AUTO_REUSE, scope = "phi_z")
+											  activation_fn=tf.nn.relu,
+											  reuse=tf.AUTO_REUSE, scope = "phi_z")
 
 			with tf.variable_scope("dec"):
 				dec_hidden = tf.concat(values=(phi_z, h), axis = -1)
@@ -136,18 +137,18 @@ class VRNNCell(tf.contrib.rnn.LSTMBlockCell):
 					dec_hidden = fully_connected(dec_hidden, dec_Dh, 
 												 weights_initializer=xavier_initializer(uniform=False), 
 												 biases_initializer=tf.constant_initializer(0),
-												 activation_fn = tf.nn.relu,
-												 reuse = tf.AUTO_REUSE, scope = "Dh_{}".format(i))
+												 activation_fn=tf.nn.relu,
+												 reuse=tf.AUTO_REUSE, scope = "Dh_{}".format(i))
 				dec_mu = fully_connected(dec_hidden, self.Dx, 
 										 weights_initializer=xavier_initializer(uniform=False), 
 										 biases_initializer=tf.constant_initializer(0),
-										 activation_fn = None,
-										 reuse = tf.AUTO_REUSE, scope = "mu")
+										 activation_fn=None,
+										 reuse=tf.AUTO_REUSE, scope = "mu")
 				dec_sigma = fully_connected(dec_hidden, self.Dx, 
 											weights_initializer=xavier_initializer(uniform=False), 
 											biases_initializer=tf.constant_initializer(self.sigma_bias_init),
-											activation_fn = tf.nn.softplus,
-											reuse = tf.AUTO_REUSE, scope = "sigma")
+											activation_fn=tf.nn.softplus,
+											reuse=tf.AUTO_REUSE, scope = "sigma")
 
 				# for prediction
 				dec_predict_hidden = tf.concat(values=(phi_z_prior, h), axis = -1)
@@ -155,13 +156,13 @@ class VRNNCell(tf.contrib.rnn.LSTMBlockCell):
 					dec_predict_hidden = fully_connected(dec_predict_hidden, dec_Dh, 
 														 weights_initializer=xavier_initializer(uniform=False), 
 														 biases_initializer=tf.constant_initializer(0),
-														 activation_fn = tf.nn.relu,
-														 reuse = tf.AUTO_REUSE, scope = "Dh_{}".format(i))
+														 activation_fn=tf.nn.relu,
+														 reuse=tf.AUTO_REUSE, scope = "Dh_{}".format(i))
 				x_prediction = fully_connected(dec_predict_hidden, self.Dx, 
 											   weights_initializer=xavier_initializer(uniform=False), 
 											   biases_initializer=tf.constant_initializer(0),
-											   activation_fn = None,
-											   reuse = tf.AUTO_REUSE, scope = "mu")
+											   activation_fn=None,
+											   reuse=tf.AUTO_REUSE, scope = "mu")
 
 			output, next_state = self.lstm(tf.concat((phi_x, phi_z), axis = -1), state)
 
@@ -169,28 +170,50 @@ class VRNNCell(tf.contrib.rnn.LSTMBlockCell):
 
 class VRNN_model():
 	def __init__(self, VRNNCell, batch_size, 
-				 initial_state_trainable = False,
+				 initial_state_all_zero = True,
+				 is_lstm_Dh = 50,
 				 sigma_min = 1e-9):
 		self.VRNNCell = VRNNCell
 		self.batch_size = batch_size
-		self.initial_state_trainable = initial_state_trainable
+		self.initial_state_all_zero = initial_state_all_zero
 		self.sigma_min = sigma_min
+		self.is_lstm_Dh = is_lstm_Dh
+		self.is_f_lstm = tf.contrib.rnn.LSTMBlockCell(is_lstm_Dh, name = "is_f_lstm")
+		self.is_b_lstm = tf.contrib.rnn.LSTMBlockCell(is_lstm_Dh, name = "is_b_lstm")
+
+	def get_initial_state(self, Inputs):
+		with tf.variable_scope("initial_state"):
+			if self.initial_state_all_zero:
+				initial_c = tf.zeros([self.batch_size, self.VRNNCell.c_size], name = "initial_c")
+				initial_h = tf.zeros([self.batch_size, self.VRNNCell.h_size], name = "initial_h")
+				initial_state = tf.nn.rnn_cell.LSTMStateTuple(initial_c, initial_h)
+			else:
+				is_lstm_initial_c = tf.zeros([self.batch_size, self.is_lstm_Dh], name = "is_lstm_initial_c")
+				is_lstm_initial_h = tf.zeros([self.batch_size, self.is_lstm_Dh], name = "is_lstm_initial_h")
+				is_lstm_initial_state = tf.nn.rnn_cell.LSTMStateTuple(is_lstm_initial_c, is_lstm_initial_h)
+				f_Inputs = list(Inputs)
+				b_Inputs = list(reversed(Inputs))
+				_, f_last_state = tf.nn.static_rnn(self.is_f_lstm, f_Inputs, initial_state = is_lstm_initial_state)
+				_, b_last_state = tf.nn.static_rnn(self.is_b_lstm, b_Inputs, initial_state = is_lstm_initial_state)
+				f_last_h, b_last_h = f_last_state[1], b_last_state[1]
+				f_b_last_h = tf.concat([f_last_h, b_last_h], axis = -1, name = "f_b_last_state")
+				initial_c_h_flat = fully_connected(f_b_last_h, 2*self.VRNNCell.c_size,
+												   weights_initializer=xavier_initializer(uniform=False),
+												   biases_initializer=tf.constant_initializer(0),
+												   activation_fn=None,
+												   reuse=tf.AUTO_REUSE, scope = "initial_state")
+				initial_c_h = tf.reshape(initial_c_h_flat, [self.batch_size, 2, self.VRNNCell.c_size], name = "initial_c_h")
+				initial_c, initial_h = tf.unstack(initial_c_h, axis=1, name="unstack_initial_c_h")
+				initial_state = tf.nn.rnn_cell.LSTMStateTuple(initial_c, initial_h)
+			return initial_state
 
 	def get_output(self, Input_BxTxDx):
 		"""
 		Input shape: [batch_size, time, x_dim]
 		"""
-		with tf.variable_scope("initial_state", reuse = tf.AUTO_REUSE):
-			initial_c = tf.get_variable("initial_c", [self.batch_size, self.VRNNCell.c_size], 
-										tf.float32, initializer=tf.zeros_initializer(), 
-										trainable = self.initial_state_trainable)
-			initial_h = tf.get_variable("initial_h", [self.batch_size, self.VRNNCell.h_size], 
-										tf.float32, initializer=tf.zeros_initializer(), 
-										trainable = self.initial_state_trainable)
-
-			initial_state = tf.nn.rnn_cell.LSTMStateTuple(initial_c, initial_h)
 
 		Inputs = tf.unstack(Input_BxTxDx, axis = 1)
+		initial_state = self.get_initial_state(Inputs)
 		outputs, last_state = tf.nn.static_rnn(self.VRNNCell, Inputs, initial_state = initial_state)
 
 		names = ["prior_mu", "prior_sigma", "enc_mu", "enc_sigma", "dec_mu", "dec_sigma", "x_prediction"]
@@ -228,8 +251,8 @@ class VRNN_model():
 		KL_loss = KL_gauss_gauss(enc_mu, enc_sigma, prior_mu, prior_sigma)
 		log_prob_loss = gaussian_log_prob(Input, dec_mu, dec_sigma)
 
-		return tf.reduce_mean(KL_loss - log_prob_loss, name = "loss")
-		return tf.log(tf.reduce_mean(KL_loss - log_prob_loss, name = "loss"), name = "loss")
+		return tf.reduce_mean(log_prob_loss - KL_loss, name = "loss")
+		return tf.log(tf.reduce_mean(log_prob_loss - KL_loss, name = "loss"), name = "loss")
 
 	def get_prediction(self, output):
 		return output[-1]
