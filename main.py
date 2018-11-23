@@ -160,6 +160,7 @@ if __name__ == "__main__":
 							 "epoch":epoch,
 							 "seed":seed,
 							 "n_train":n_train,
+							 "initial_state_all_zero":initial_state_all_zero,
 							 "rslt_dir_name":rslt_dir_name}
 
 		print("experiment_params")
