@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import seaborn as sns
 
 import datetime
@@ -61,6 +62,17 @@ def plot_loss(RLT_DIR, loss_trains, loss_tests):
     plt.savefig(RLT_DIR + "loss")
     plt.show()
 
+
+def plot_MSE(RLT_DIR, MSE_trains, MSE_tests):
+    plt.figure()
+    plt.plot(MSE_trains)
+    plt.plot(MSE_tests)
+    plt.legend(["MSE_trains", "MSE_tests"])
+    sns.despine()
+    plt.savefig(RLT_DIR + "MSE")
+    plt.show()
+
+
 def plot_hidden(RLT_DIR, predicted_hidden, true_hidden, is_test):
     PLT_DIR = "hidden_compare_" + ("test" if is_test else "train") + "/"
     if not os.path.exists(RLT_DIR + PLT_DIR): os.makedirs(RLT_DIR + PLT_DIR)
@@ -71,7 +83,7 @@ def plot_hidden(RLT_DIR, predicted_hidden, true_hidden, is_test):
             plt.plot(predicted_hidden[i, :, j])
             plt.legend(["true_hidden", "predicted_hidden"])
             sns.despine()
-            plt.savefig(RLT_DIR + PLT_DIR + "hidden_dim_{}_idx_{}".format(i, j))
+            plt.savefig(RLT_DIR + PLT_DIR + "hidden_dim_{}_idx_{}".format(j, i))
             plt.close()
             #plt.show()
 
@@ -85,6 +97,73 @@ def plot_expression(RLT_DIR, predicted_obs, true_obs, is_test):
             plt.plot(predicted_obs[i, :, j])
             plt.legend(["true_obs", "predicted_obs"])
             sns.despine()
-            plt.savefig(RLT_DIR + PLT_DIR + "obs_dim_{}_idx_{}".format(i, j))
+            plt.savefig(RLT_DIR + PLT_DIR + "obs_dim_{}_idx_{}".format(j, i))
             plt.close()
             #plt.show()
+
+def plot_hidden_2d(RLT_DIR, predicted_hidden, is_test):
+    PLT_DIR = "hidden_result_2d" + ("test" if is_test else "train") + "/"
+    if not os.path.exists(RLT_DIR + PLT_DIR): os.makedirs(RLT_DIR + PLT_DIR)
+    for i in range(predicted_hidden.shape[0]):
+        plt.figure()
+        plt.plot(predicted_hidden[i,:,0], predicted_hidden[i,:,1])
+        plt.legend(["predicted_hidden"])
+        sns.despine()
+        plt.savefig(RLT_DIR + PLT_DIR + "hidden_idx_{}".format(i))
+        plt.close()
+
+def plot_hidden_3d(RLT_DIR, predicted_hidden, is_test):
+    PLT_DIR = "hidden_result_3d" + ("test" if is_test else "train") + "/"
+    if not os.path.exists(RLT_DIR + PLT_DIR): os.makedirs(RLT_DIR + PLT_DIR)
+    for i in range(predicted_hidden.shape[0]):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.plot(predicted_hidden[i,:,0], predicted_hidden[i,:,1], predicted_hidden[i,:,2])
+        ax.legend(["predicted_hidden"])
+        sns.despine()
+        fig.savefig(RLT_DIR + PLT_DIR + "hidden_idx_{}".format(i))
+        plt.close()
+
+def plot_training_2d(RLT_DIR, true_hidden, true_obs, is_test):
+    PLT_DIR = "training_2d_" + ("test" if is_test else "train") + "/"
+    if not os.path.exists(RLT_DIR + PLT_DIR): os.makedirs(RLT_DIR + PLT_DIR)
+    for i in range(true_hidden.shape[0]):
+        plt.figure()
+        plt.plot(true_hidden[i,:,0])
+        plt.plot(true_hidden[i,:,1])
+        plt.plot(true_obs[i,:,0])
+        plt.legend(["true_hidden_dim_1", "true_hidden_dim_2", "true_obs"])
+        sns.despine()
+        plt.savefig(RLT_DIR + PLT_DIR + "training_idx_{}".format(i))
+        plt.close()
+
+def plot_training_3d(RLT_DIR, true_hidden, true_obs, is_test):
+    PLT_DIR = "training_3d_" + ("test" if is_test else "train") + "/"
+    if not os.path.exists(RLT_DIR + PLT_DIR): os.makedirs(RLT_DIR + PLT_DIR)
+    for i in range(true_hidden.shape[0]):
+        plt.figure()
+        plt.plot(true_hidden[i,:,0])
+        plt.plot(true_hidden[i,:,1])
+        plt.plot(true_hidden[i,:,2])
+        plt.plot(true_obs[i,:,0])
+        plt.legend(["true_hidden_dim_1", "true_hidden_dim_2", "true_hidden_dim_3", "true_obs"])
+        sns.despine()
+        plt.savefig(RLT_DIR + PLT_DIR + "training_idx_{}".format(i))
+        plt.close()
+
+def plot_training(RLT_DIR, true_hidden, true_obs, is_test):
+    PLT_DIR = "training_" + ("test" if is_test else "train") + "/"
+    if not os.path.exists(RLT_DIR + PLT_DIR): os.makedirs(RLT_DIR + PLT_DIR)
+    for i in range(true_hidden.shape[0]):
+        plt.figure()
+        legend = []
+        for j in range(true_hidden.shape[-1]):
+            plt.plot(true_hidden[i,:,j])
+            legend.append("true_hidden_dim_" + str(j))
+        for j in range(true_obs.shape[-1]):
+            plt.plot(true_obs[i,:,j])
+            legend.append("true_obs_dim_" + str(j))
+        plt.legend(legend)
+        sns.despine()
+        plt.savefig(RLT_DIR + PLT_DIR + "training_idx_{}".format(i))
+        plt.close()
