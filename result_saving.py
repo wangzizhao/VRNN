@@ -56,33 +56,35 @@ def plot_loss(RLT_DIR, loss_trains, loss_tests):
     plt.figure()
     plt.plot(loss_trains)
     plt.plot(loss_tests)
-    plt.legend(['loss_trains', 'loss_tests'])
+    plt.legend(["loss_trains", "loss_tests"])
     sns.despine()
     plt.savefig(RLT_DIR + "loss")
     plt.show()
 
-def plot_hidden(RLT_DIR, predicted_hidden, true_hidden):
-    if not os.path.exists(RLT_DIR + 'hidden_compare/'): os.makedirs(RLT_DIR + 'hidden_compare/')
+def plot_hidden(RLT_DIR, predicted_hidden, true_hidden, is_test):
+    PLT_DIR = "hidden_compare_" + ("test" if is_test else "train") + "/"
+    if not os.path.exists(RLT_DIR + PLT_DIR): os.makedirs(RLT_DIR + PLT_DIR)
     for i in range(true_hidden.shape[0]):
         for j in range(true_hidden.shape[-1]):
             plt.figure()
             plt.plot(true_hidden[i, :, j])
             plt.plot(predicted_hidden[i, :, j])
-            plt.legend(['true_hidden', 'predicted_hidden'])
+            plt.legend(["true_hidden", "predicted_hidden"])
             sns.despine()
-            plt.savefig(RLT_DIR + 'hidden_compare/hidden_idx_{}_dim_{}'.format(i, j))
+            plt.savefig(RLT_DIR + PLT_DIR + "hidden_dim_{}_idx_{}".format(i, j))
             plt.close()
             #plt.show()
 
-def plot_expression(RLT_DIR, predicted_obs, true_obs):
-    if not os.path.exists(RLT_DIR + 'obs_compare/'): os.makedirs(RLT_DIR + 'obs_compare/')
+def plot_expression(RLT_DIR, predicted_obs, true_obs, is_test):
+    PLT_DIR = "obs_compare_" + ("test" if is_test else "train") + "/"
+    if not os.path.exists(RLT_DIR + PLT_DIR): os.makedirs(RLT_DIR + PLT_DIR)
     for i in range(true_obs.shape[0]):
         for j in range(true_obs.shape[-1]):
             plt.figure()
             plt.plot(true_obs[i, :, j])
             plt.plot(predicted_obs[i, :, j])
-            plt.legend(['true_obs', 'predicted_obs'])
+            plt.legend(["true_obs", "predicted_obs"])
             sns.despine()
-            plt.savefig(RLT_DIR + 'obs_compare/expression_idx_{}_dim_{}'.format(i, j))
+            plt.savefig(RLT_DIR + PLT_DIR + "obs_dim_{}_idx_{}".format(i, j))
             plt.close()
             #plt.show()

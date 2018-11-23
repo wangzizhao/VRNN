@@ -39,7 +39,7 @@ if __name__ == "__main__":
 	tf.set_random_seed(seed)
 	np.random.seed(seed)
 
-	use_stock_data = True
+	use_stock_data = False
 
 	# model hyperparameters
 	if use_stock_data:
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
 	store_res = True
 	save_freq = 10
-	saving_num = min(n_train, 1*batch_size)
+	saving_num = min([n_train, n_test, 1*batch_size])
 	# rslt_dir_name = "VRNN"
 	rslt_dir_name = "dow_jones"
 
@@ -161,6 +161,11 @@ if __name__ == "__main__":
 							 "seed":seed,
 							 "n_train":n_train,
 							 "rslt_dir_name":rslt_dir_name}
+
+		print("experiment_params")
+		for key, val in experiment_params.items():
+			print("\t{}:{}".format(key, val))
+
 		RLT_DIR = create_RLT_DIR(experiment_params)
 		writer = tf.summary.FileWriter(RLT_DIR)
 		saver = tf.train.Saver()
@@ -214,13 +219,21 @@ if __name__ == "__main__":
 			hidden_val = np.zeros((saving_num, time, n_particles, Dz))
 			for i in range(0, saving_num, batch_size):
 				hidden_val[i:i+batch_size] = sess.run(hidden, feed_dict={obs:obs_train[i:i+batch_size]})
-			plot_hidden(RLT_DIR, np.mean(hidden_val, axis = 2), hidden_train[0:saving_num])
+			plot_hidden(RLT_DIR, np.mean(hidden_val, axis = 2), hidden_train[0:saving_num], is_test = False)
+
+			for i in range(0, saving_num, batch_size):
+				hidden_val[i:i+batch_size] = sess.run(hidden, feed_dict={obs:obs_test[i:i+batch_size]})
+			plot_hidden(RLT_DIR, np.mean(hidden_val, axis = 2), hidden_test[0:saving_num], is_test = True)
 
 		if store_res:
 			prediction_val = np.zeros((saving_num, time, n_particles, Dx))
 			for i in range(0, saving_num, batch_size):
 				prediction_val[i:i+batch_size] = sess.run(prediction, feed_dict={obs:obs_train[i:i+batch_size]})
-			plot_expression(RLT_DIR, np.mean(prediction_val, axis = 2), obs_train[0:saving_num])
+			plot_expression(RLT_DIR, np.mean(prediction_val, axis = 2), obs_train[0:saving_num], is_test = False)
+
+			for i in range(0, saving_num, batch_size):
+				prediction_val[i:i+batch_size] = sess.run(prediction, feed_dict={obs:obs_test[i:i+batch_size]})
+			plot_expression(RLT_DIR, np.mean(prediction_val, axis = 2), obs_test[0:saving_num], is_test = True)
 
 	# ======================================== anther data saving part ======================================== #
 
