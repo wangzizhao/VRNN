@@ -26,7 +26,7 @@ if __name__ == "__main__":
 	# training hyperparameters
 	time = 100
 
-	n_particles = 100
+	n_particles = 1
 	batch_size = 16
 
 	lr = 1e-4
@@ -52,7 +52,7 @@ if __name__ == "__main__":
 		enc_Dhs 	= [100, 100, 100]
 		decoder_Dhs = [100, 100, 100]
 	else:
-		Dx = 1
+		Dx = 2
 		Dh = 50
 		Dz = 2
 		x_ft_Dhs = [100]
@@ -61,7 +61,7 @@ if __name__ == "__main__":
 		enc_Dhs = [100]
 		decoder_Dhs = [100]
 
-	initial_state_all_zero = True
+	initial_state_all_zero = False
 	is_lstm_Dh = 50
 	sigma_min = 1e-6
 
@@ -72,7 +72,7 @@ if __name__ == "__main__":
 	save_freq = 10
 	saving_num = min([n_train, n_test, 1*batch_size])
 	#rslt_dir_name = "dow_jones"
-	rslt_dir_name = "generated_data"
+	rslt_dir_name = "linear_linear"
 
 	# ============================================= dataset part ============================================= #
 	if use_stock_data:
@@ -151,12 +151,20 @@ if __name__ == "__main__":
 
 		#9 linear param [1,1]
 
-		fhn_params = (1.0, 0.95, 0.05, 1.0, 0.15)
-		f_sample_tran = fhn.fhn_transformation(fhn_params)
-		f_sample_dist = dirac_delta.dirac_delta(f_sample_tran)
-		linear_params = np.array([[1,1]])
-		g_sample_tran = linear.linear_transformation(linear_params)
-		mvn_sigma = 0.2 * np.eye(1)
+		#1 initial_state_all_zero = False, n_particles = 1
+
+		#2 initial_state_all_zero = True
+
+		#3 n_particles = 100
+
+		f_linear_params = np.array([[0.99,0.01],[0.2,0.8]])
+		f_sample_tran = linear.linear_transformation(f_linear_params)
+		mvn_sigma = np.eye(2)
+		f_sample_dist = mvn.mvn(f_sample_tran, mvn_sigma)
+
+		g_linear_params = np.array([[10,10],[5,15]])
+		g_sample_tran = linear.linear_transformation(g_linear_params)
+		mvn_sigma = np.eye(2)
 		g_sample_dist = mvn.mvn(g_sample_tran, mvn_sigma)
 
 
