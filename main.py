@@ -11,6 +11,7 @@ from result_saving import *
 from sampler import create_train_test_dataset
 from transformation import *
 from distribution import *
+from trainer import Trainer
 
 # for data saving stuff
 import sys
@@ -26,7 +27,7 @@ if __name__ == "__main__":
 	# training hyperparameters
 	time = 100
 
-	n_particles = 1
+	n_particles = 100
 	batch_size = 16
 
 	lr = 1e-4
@@ -61,7 +62,7 @@ if __name__ == "__main__":
 		enc_Dhs = [100]
 		decoder_Dhs = [100]
 
-	initial_state_all_zero = False
+	initial_state_all_zero = True
 	is_lstm_Dh = 50
 	sigma_min = 1e-6
 
@@ -162,7 +163,7 @@ if __name__ == "__main__":
 		mvn_sigma = np.eye(2)
 		f_sample_dist = mvn.mvn(f_sample_tran, mvn_sigma)
 
-		g_linear_params = np.array([[10,10],[5,15]])
+		g_linear_params = np.array([[2,1],[1,2]])
 		g_sample_tran = linear.linear_transformation(g_linear_params)
 		mvn_sigma = np.eye(2)
 		g_sample_dist = mvn.mvn(g_sample_tran, mvn_sigma)
@@ -189,14 +190,14 @@ if __name__ == "__main__":
 					   is_lstm_Dh = is_lstm_Dh,
 					   sigma_min = sigma_min)
 
-	output, last_state = model.get_output(obs)
-	loss = model.get_loss(obs, output)
-	hidden = model.get_hidden(output)
-	prediction = model.get_prediction(output)
+	# output, last_state = model.get_output(obs)
+	# loss = model.get_loss(obs, output)
+	# hidden = model.get_hidden(output)
+	# prediction = model.get_prediction(output)
 
-	with tf.name_scope("train"):
-		train_op = tf.train.AdamOptimizer(lr).minimize(-loss)
-	init = tf.global_variables_initializer()
+	# with tf.name_scope("train"):
+	# 	train_op = tf.train.AdamOptimizer(lr).minimize(-loss)
+	# init = tf.global_variables_initializer()
 
 	# =========================================== data saving part =========================================== #
 	if store_res == True:
@@ -216,7 +217,7 @@ if __name__ == "__main__":
 
 		RLT_DIR = create_RLT_DIR(experiment_params)
 		writer = tf.summary.FileWriter(RLT_DIR)
-		saver = tf.train.Saver()
+		#saver = tf.train.Saver()
 
 	loss_trains = []
 	loss_tests = []
@@ -224,85 +225,90 @@ if __name__ == "__main__":
 	MSE_tests = []
 
 	# ============================================= training part ============================================ #
-	with tf.Session() as sess:
 
-		sess.run(init)
+	trainer = Trainer(model, lr, epoch, batch_size, print_freq, save_freq, obs, RLT_DIR, writer, 
+					  hidden_train, obs_train, hidden_test, obs_test, store_res, saving_num, time, Dx, Dz, n_particles)
+	hidden_val_train, hidden_val_test, prediction_val_train, prediction_val_test, loss_trains, loss_tests, MSE_trains, MSE_tests = trainer.train()
 
-		if store_res == True:
-			writer.add_graph(sess.graph)
+	# with tf.Session() as sess:
 
-		loss_train = model.get_loss_val(sess, loss, obs, obs_train)
-		loss_test  = model.get_loss_val(sess, loss, obs, obs_test)
-		MSE_train = model.get_MSE(sess, prediction, obs, obs_train)
-		MSE_test  = model.get_MSE(sess, prediction, obs, obs_test)
-		print("iter {:>3}, train loss: {:>7.3f}, test loss: {:>7.3f}, train MSE: {:>7.3f}, test MSE: {:>7.3f}"\
-			.format(0, loss_train, loss_test, MSE_train, MSE_test))
+	# 	sess.run(init)
 
-		loss_trains.append(loss_train)
-		loss_tests.append(loss_test)
-		MSE_trains.append(MSE_train)
-		MSE_tests.append(MSE_test)
+	# 	if store_res == True:
+	# 		writer.add_graph(sess.graph)
 
-		for i in range(epoch):
-			if hidden_train is not None:
-				hidden_train, obs_train = shuffle(hidden_train, obs_train)
-			else:
-				obs_train = shuffle(obs_train)
-			for j in range(0, len(obs_train), batch_size):
-				sess.run(train_op, feed_dict={obs:obs_train[j:j+batch_size]})
+	# 	loss_train = model.get_loss_val(sess, loss, obs, obs_train)
+	# 	loss_test  = model.get_loss_val(sess, loss, obs, obs_test)
+	# 	MSE_train = model.get_MSE(sess, prediction, obs, obs_train)
+	# 	MSE_test  = model.get_MSE(sess, prediction, obs, obs_test)
+	# 	print("iter {:>3}, train loss: {:>7.3f}, test loss: {:>7.3f}, train MSE: {:>7.3f}, test MSE: {:>7.3f}"\
+	# 		.format(0, loss_train, loss_test, MSE_train, MSE_test))
+
+	# 	loss_trains.append(loss_train)
+	# 	loss_tests.append(loss_test)
+	# 	MSE_trains.append(MSE_train)
+	# 	MSE_tests.append(MSE_test)
+
+	# 	for i in range(epoch):
+	# 		if hidden_train is not None:
+	# 			hidden_train, obs_train = shuffle(hidden_train, obs_train)
+	# 		else:
+	# 			obs_train = shuffle(obs_train)
+	# 		for j in range(0, len(obs_train), batch_size):
+	# 			sess.run(train_op, feed_dict={obs:obs_train[j:j+batch_size]})
 				
-			# print training and testing loss
-			if (i+1)%print_freq == 0:
-				loss_train = model.get_loss_val(sess, loss, obs, obs_train)
-				loss_test  = model.get_loss_val(sess, loss, obs, obs_test)
-				MSE_train = model.get_MSE(sess, prediction, obs, obs_train)
-				MSE_test  = model.get_MSE(sess, prediction, obs, obs_test)
-				print("iter {:>3}, train loss: {:>7.3f}, test loss: {:>7.3f}, train MSE: {:>7.3f}, test MSE: {:>7.3f}"\
-					.format(i+1, loss_train, loss_test, MSE_train, MSE_test))
+	# 		# print training and testing loss
+	# 		if (i+1)%print_freq == 0:
+	# 			loss_train = model.get_loss_val(sess, loss, obs, obs_train)
+	# 			loss_test  = model.get_loss_val(sess, loss, obs, obs_test)
+	# 			MSE_train = model.get_MSE(sess, prediction, obs, obs_train)
+	# 			MSE_test  = model.get_MSE(sess, prediction, obs, obs_test)
+	# 			print("iter {:>3}, train loss: {:>7.3f}, test loss: {:>7.3f}, train MSE: {:>7.3f}, test MSE: {:>7.3f}"\
+	# 				.format(i+1, loss_train, loss_test, MSE_train, MSE_test))
 
-				loss_trains.append(loss_train)
-				loss_tests.append(loss_test)
-				MSE_trains.append(MSE_train)
-				MSE_tests.append(MSE_test)
+	# 			loss_trains.append(loss_train)
+	# 			loss_tests.append(loss_test)
+	# 			MSE_trains.append(MSE_train)
+	# 			MSE_tests.append(MSE_test)
 
-			if store_res == True and (i+1)%save_freq == 0:
-				if not os.path.exists(RLT_DIR+"model"): os.makedirs(RLT_DIR+"model")
-				saver.save(sess, RLT_DIR+"model/model_epoch", global_step=i+1)
+	# 		if store_res == True and (i+1)%save_freq == 0:
+	# 			if not os.path.exists(RLT_DIR+"model"): os.makedirs(RLT_DIR+"model")
+	# 			saver.save(sess, RLT_DIR+"model/model_epoch", global_step=i+1)
 
-		print("finish training")
+	# 	print("finish training")
 
 
 		#hidden_train(generated hidden variable) compare with output[2] (predicted hidden variable, Batch size * T * Dz)
 
-		if store_res and not use_stock_data:
-			hidden_val = np.zeros((saving_num, time, n_particles, Dz))
-			for i in range(0, saving_num, batch_size):
-				hidden_val[i:i+batch_size] = sess.run(hidden, feed_dict={obs:obs_train[i:i+batch_size]})
-			plot_hidden(RLT_DIR, np.mean(hidden_val, axis = 2), hidden_train[0:saving_num], is_test = False)
-			plot_hidden_2d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = False)
-			#plot_hidden_3d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = False)
+	if store_res and not use_stock_data:
+		# hidden_val = np.zeros((saving_num, time, n_particles, Dz))
+		# for i in range(0, saving_num, batch_size):
+		# 	hidden_val[i:i+batch_size] = sess.run(hidden, feed_dict={obs:obs_train[i:i+batch_size]})
+		plot_hidden(RLT_DIR, np.mean(hidden_val_train, axis = 2), hidden_train[0:saving_num], is_test = False)
+		plot_hidden_2d(RLT_DIR, np.mean(hidden_val_train, axis = 2), is_test = False)			
+		#plot_hidden_3d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = False)
 
-			for i in range(0, saving_num, batch_size):
-				hidden_val[i:i+batch_size] = sess.run(hidden, feed_dict={obs:obs_test[i:i+batch_size]})
-			plot_hidden(RLT_DIR, np.mean(hidden_val, axis = 2), hidden_test[0:saving_num], is_test = True)
-			plot_hidden_2d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = True)
-			#plot_hidden_3d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = True)
+		# for i in range(0, saving_num, batch_size):
+		# 	hidden_val[i:i+batch_size] = sess.run(hidden, feed_dict={obs:obs_test[i:i+batch_size]})
+		plot_hidden(RLT_DIR, np.mean(hidden_val_test, axis = 2), hidden_test[0:saving_num], is_test = True)
+		plot_hidden_2d(RLT_DIR, np.mean(hidden_val_test, axis = 2), is_test = True)
+		#plot_hidden_3d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = True)
 
-		if store_res:
-			prediction_val = np.zeros((saving_num, time, n_particles, Dx))
-			for i in range(0, saving_num, batch_size):
-				prediction_val[i:i+batch_size] = sess.run(prediction, feed_dict={obs:obs_train[i:i+batch_size]})
-			plot_expression(RLT_DIR, np.mean(prediction_val, axis = 2), obs_train[0:saving_num], is_test = False)
+	if store_res:
+		# prediction_val = np.zeros((saving_num, time, n_particles, Dx))
+		# for i in range(0, saving_num, batch_size):
+		# 	prediction_val[i:i+batch_size] = sess.run(prediction, feed_dict={obs:obs_train[i:i+batch_size]})
+		plot_expression(RLT_DIR, np.mean(prediction_val_train, axis = 2), obs_train[0:saving_num], is_test = False)
 
-			for i in range(0, saving_num, batch_size):
-				prediction_val[i:i+batch_size] = sess.run(prediction, feed_dict={obs:obs_test[i:i+batch_size]})
-			plot_expression(RLT_DIR, np.mean(prediction_val, axis = 2), obs_test[0:saving_num], is_test = True)
+		# for i in range(0, saving_num, batch_size):
+		# 	prediction_val[i:i+batch_size] = sess.run(prediction, feed_dict={obs:obs_test[i:i+batch_size]})
+		plot_expression(RLT_DIR, np.mean(prediction_val_test, axis = 2), obs_test[0:saving_num], is_test = True)
 
-		if store_res and not use_stock_data:
-			plot_training(RLT_DIR, hidden_train[0:saving_num], obs_train[0:saving_num], is_test = False)
-			plot_training(RLT_DIR, hidden_test[0:saving_num], obs_test[0:saving_num], is_test = True)
-			# plot_training_3d(RLT_DIR, hidden_train[0:saving_num], obs_train[0:saving_num], is_test = False)
-			# plot_training_3d(RLT_DIR, hidden_test[0:saving_num], obs_test[0:saving_num], is_test = True)
+	if store_res and not use_stock_data:
+		plot_training(RLT_DIR, hidden_train[0:saving_num], obs_train[0:saving_num], is_test = False)
+		plot_training(RLT_DIR, hidden_test[0:saving_num], obs_test[0:saving_num], is_test = True)
+		# plot_training_3d(RLT_DIR, hidden_train[0:saving_num], obs_train[0:saving_num], is_test = False)
+		# plot_training_3d(RLT_DIR, hidden_test[0:saving_num], obs_test[0:saving_num], is_test = True)
 
 	# ======================================== anther data saving part ======================================== #
 
@@ -326,12 +332,15 @@ if __name__ == "__main__":
 			json.dump(data_dict, f, indent = 4, cls = NumpyEncoder)
 
 		if use_stock_data:
-			learned_val_dict = {"prediction":prediction_val}
+			learned_val_dict = {"prediction_train":prediction_val_train,
+								"prediction_test":prediction_val_test}
 			true_val_dict = {"obs_train":obs_train[0:saving_num],
 							 "obs_test":obs_test[0:saving_num]}
 		else:
-			learned_val_dict = {"hidden_val":hidden_val,
-								"prediction":prediction_val}
+			learned_val_dict = {"hidden_train":hidden_val_train,
+								"hidden_test":hidden_val_test,
+								"prediction_train":prediction_val_train,
+								"prediction_test":prediction_val_test}
 			true_val_dict = {"obs_train":obs_train[0:saving_num],
 							 "obs_test":obs_test[0:saving_num],
 							 "hidden_train":hidden_train[0:saving_num],
