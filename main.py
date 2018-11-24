@@ -24,13 +24,13 @@ if __name__ == "__main__":
 
 	# ============================================ parameter part ============================================ #
 	# training hyperparameters
-	time = 50
+	time = 100
 
 	n_particles = 1
 	batch_size = 16
 
 	lr = 1e-4
-	epoch = 10
+	epoch = 100
 
 	n_train = 50 * batch_size
 	n_test  = 1  * batch_size
@@ -52,9 +52,9 @@ if __name__ == "__main__":
 		enc_Dhs 	= [100, 100, 100]
 		decoder_Dhs = [100, 100, 100]
 	else:
-		Dx = 1
+		Dx = 2
 		Dh = 50
-		Dz = 3
+		Dz = 2
 		x_ft_Dhs = [100]
 		z_ft_Dhs = [100]
 		prior_Dhs = [100]
@@ -72,7 +72,7 @@ if __name__ == "__main__":
 	save_freq = 10
 	saving_num = min([n_train, n_test, 1*batch_size])
 	#rslt_dir_name = "dow_jones"
-	rslt_dir_name = "one_dim_obs"
+	rslt_dir_name = "linear_linear"
 
 	# ============================================= dataset part ============================================= #
 	if use_stock_data:
@@ -97,15 +97,15 @@ if __name__ == "__main__":
 
 		#f:lorez, g:linear
 		#Dz:3, Dx:10
-		lorenz_params = (10.0, 28.0, 8.0/3.0, 0.01)
-		f_sample_tran = lorenz.lorenz_transformation(lorenz_params)
-		f_sample_dist = dirac_delta.dirac_delta(f_sample_tran)
+		# lorenz_params = (10.0, 28.0, 8.0/3.0, 0.01)
+		# f_sample_tran = lorenz.lorenz_transformation(lorenz_params)
+		# f_sample_dist = dirac_delta.dirac_delta(f_sample_tran)
 
-		#linear_params = np.array([[0.95,0.05, 0.01], [0.8,0.15, 0.05], [0.7, 0.1, 0.2], [0.5, 0.4, 0.1], [0.6, 0.1, 0.3], [0.4, 0.2, 0.4], [0.4, 0.5, 0.1], [0.3, 0.2, 0.5], [0.2, 0.7, 0.1], [0.1, 0.1, 0.8]])
-		linear_params = np.random.randn(1,3)
-		g_sample_tran = linear.linear_transformation(linear_params)
-		mvn_sigma = 0.2 * np.eye(1)
-		g_sample_dist = mvn.mvn(g_sample_tran, mvn_sigma)
+		# #linear_params = np.array([[0.95,0.05, 0.01], [0.8,0.15, 0.05], [0.7, 0.1, 0.2], [0.5, 0.4, 0.1], [0.6, 0.1, 0.3], [0.4, 0.2, 0.4], [0.4, 0.5, 0.1], [0.3, 0.2, 0.5], [0.2, 0.7, 0.1], [0.1, 0.1, 0.8]])
+		# linear_params = np.random.randn(1,3)
+		# g_sample_tran = linear.linear_transformation(linear_params)
+		# mvn_sigma = 0.2 * np.eye(1)
+		# g_sample_dist = mvn.mvn(g_sample_tran, mvn_sigma)
 		# g_sample_tran = linear.linear_transformation(linear_params)
 		# g_sample_dist = poisson.poisson(g_sample_tran)
 
@@ -129,6 +129,48 @@ if __name__ == "__main__":
 		# g_sample_tran = linear.linear_transformation(g_linear_params)
 		# mvn_sigma = np.array([[1,0],[0,1]])
 		# g_sample_dist = mvn.mvn(g_sample_tran, mvn_sigma)
+
+
+		#1
+		#f:fhn, g:linear，epoch = 100, time = 100, initial_state_all_zero = False, linear param [0,1]
+		#Dz:2, Dx:1
+
+		#2 linear param [1,0]
+
+		#3 linear param [1,1]
+
+		#4 initial_state_all_zero = True, n_particles = 1, linear param [0,1]
+
+		#5 linear param [1,0]
+
+		#6 linear param [1,1]
+
+		#7 n_particles = 100, linear param [0,1]
+
+		#8 linear param [1,0]
+
+		#9 linear param [1,1]
+
+		#1 initial_state_all_zero = False, n_particles = 1
+
+		#2 initial_state_all_zero = True
+
+		#3 n_particles = 100
+
+		f_linear_params = np.array([[0.99,0.01],[0.2,0.8]])
+		f_sample_tran = linear.linear_transformation(f_linear_params)
+		mvn_sigma = np.eye(2)
+		f_sample_dist = mvn.mvn(f_sample_tran, mvn_sigma)
+
+		g_linear_params = np.array([[10,10],[5,15]])
+		g_sample_tran = linear.linear_transformation(g_linear_params)
+		mvn_sigma = np.eye(2)
+		g_sample_dist = mvn.mvn(g_sample_tran, mvn_sigma)
+
+
+
+
+
 
 		hidden_train, obs_train, hidden_test, obs_test = create_train_test_dataset(n_train, n_test, time, Dz, Dx, f_sample_dist, g_sample_dist, None, -3, 3)
 
@@ -237,14 +279,14 @@ if __name__ == "__main__":
 			for i in range(0, saving_num, batch_size):
 				hidden_val[i:i+batch_size] = sess.run(hidden, feed_dict={obs:obs_train[i:i+batch_size]})
 			plot_hidden(RLT_DIR, np.mean(hidden_val, axis = 2), hidden_train[0:saving_num], is_test = False)
-			#plot_hidden_2d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = False)
-			plot_hidden_3d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = False)
+			plot_hidden_2d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = False)
+			#plot_hidden_3d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = False)
 
 			for i in range(0, saving_num, batch_size):
 				hidden_val[i:i+batch_size] = sess.run(hidden, feed_dict={obs:obs_test[i:i+batch_size]})
 			plot_hidden(RLT_DIR, np.mean(hidden_val, axis = 2), hidden_test[0:saving_num], is_test = True)
-			#plot_hidden_2d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = True)
-			plot_hidden_3d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = True)
+			plot_hidden_2d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = True)
+			#plot_hidden_3d(RLT_DIR, np.mean(hidden_val, axis = 2), is_test = True)
 
 		if store_res:
 			prediction_val = np.zeros((saving_num, time, n_particles, Dx))
