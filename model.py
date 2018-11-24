@@ -218,8 +218,8 @@ class VRNN_model():
 				is_lstm_initial_h = tf.zeros([self.batch_size, self.is_lstm_Dh], name = "is_lstm_initial_h")
 				is_lstm_initial_state = tf.nn.rnn_cell.LSTMStateTuple(is_lstm_initial_c, is_lstm_initial_h)
 
-				f_Inputs = list(Inputs)
-				b_Inputs = list(reversed(Inputs))
+				f_Inputs = list(Inputs[:len(Inputs)//2])
+				b_Inputs = list(reversed(Inputs[:len(Inputs)//2]))
 				_, f_last_state = tf.nn.static_rnn(self.is_f_lstm, f_Inputs, initial_state = is_lstm_initial_state)
 				_, b_last_state = tf.nn.static_rnn(self.is_b_lstm, b_Inputs, initial_state = is_lstm_initial_state)
 
@@ -263,6 +263,7 @@ class VRNN_model():
 	def get_loss(self, Input, output):
 		def gaussian_log_prob(x, mu, sigma, name = "gaussian_log_prob"):
 			with tf.variable_scope(name):
+				sigma = tf.where(tf.is_nan(sigma), tf.zeros_like(sigma), sigma)
 				scale_diag = tf.maximum(sigma, self.sigma_min, name = "scale_diag")
 				mvn = tfd.MultivariateNormalDiag(loc = mu, scale_diag = scale_diag,
 												 validate_args=True,
@@ -272,6 +273,8 @@ class VRNN_model():
 
 		def KL_gauss_gauss(mu1, sigma1, mu2, sigma2):
 			with tf.variable_scope("KL_gauss_gauss"):
+				sigma1 = tf.where(tf.is_nan(sigma1), tf.zeros_like(sigma1), sigma1)
+				sigma2 = tf.where(tf.is_nan(sigma2), tf.zeros_like(sigma2), sigma2)
 				sigma1 = tf.maximum(self.sigma_min, sigma1)
 				sigma2 = tf.maximum(self.sigma_min, sigma2)
 				return tf.reduce_sum(0.5 * 
