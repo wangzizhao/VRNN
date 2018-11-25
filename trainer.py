@@ -1,60 +1,56 @@
 import numpy as np
-import math
 from sklearn.utils import shuffle
 
 import tensorflow as tf
 
-# import from files
-from model import VRNNCell, VRNN_model
-from data import get_stock_data
-from result_saving import *
-from sampler import create_train_test_dataset
-from transformation import *
-from distribution import *
-
 # for data saving stuff
-import sys
-import pickle
-import json
 import os
 
 #define trainer to train the model given as parameter
 
 class Trainer:
 
-	def __init__(self, model, lr, epoch, batch_size, print_freq, save_freq, obs, 
-				 RLT_DIR, writer, hidden_train, obs_train, hidden_test, obs_test, store_res, saving_num, time, Dx, Dz, n_particles):
+	def __init__(self, model, obs):
 		self.model = model
-		self.lr = lr
-		self.epoch = epoch
-		self.batch_size = batch_size
-		self.print_freq = print_freq
-		self.save_freq = save_freq
+
+		self.batch_size = model.batch_size
+		self.n_particles = model.n_particles
+
+		self.Dx = model.VRNNCell.Dx
+		self.Dz = model.VRNNCell.Dz
+
 		self.obs = obs
+
+		self.store_res = False
+
+	def set_result_saving(self, RLT_DIR, save_freq, saving_num):
+		self.store_res = True
 		self.RLT_DIR = RLT_DIR
-		#self.saver = saver
-		self.writer = writer
+		self.save_freq = save_freq
+		self.saving_num = saving_num
+		self.writer = tf.summary.FileWriter(RLT_DIR)
+
+	def set_data_set(self, hidden_train, obs_train, hidden_test, obs_test):
 		self.hidden_train = hidden_train
 		self.hidden_test = hidden_test
 		self.obs_train = obs_train
 		self.obs_test = obs_test
-		self.store_res = store_res
-		self.saving_num = saving_num
-		self.time = time
-		self.Dx = Dx
-		self.Dz = Dz
-		self.n_particles = n_particles
+		self.time = hidden_train.shape[1]
 
-		self.loss_trains = []
-		self.loss_tests = []
-		self.MSE_trains = []
-		self.MSE_tests = []
+	def train(self, lr, epoch, print_freq):
+		self.lr = lr
+		self.epoch = epoch
+		self.print_freq = print_freq
 
-	def train(self):
 		output, last_state = self.model.get_output(self.obs)
 		loss = self.model.get_loss(self.obs, output)
 		hidden = self.model.get_hidden(output)
 		prediction = self.model.get_prediction(output)
+
+		loss_trains = []
+		loss_tests = []
+		MSE_trains = []
+		MSE_tests = []
 
 		with tf.name_scope("train"):
 			train_op = tf.train.AdamOptimizer(self.lr).minimize(-loss)
@@ -76,10 +72,10 @@ class Trainer:
 			print("iter {:>3}, train loss: {:>7.3f}, test loss: {:>7.3f}, train MSE: {:>7.3f}, test MSE: {:>7.3f}"\
 				.format(0, loss_train, loss_test, MSE_train, MSE_test))
 
-			self.loss_trains.append(loss_train)
-			self.loss_tests.append(loss_test)
-			self.MSE_trains.append(MSE_train)
-			self.MSE_tests.append(MSE_test)
+			loss_trains.append(loss_train)
+			loss_tests.append(loss_test)
+			MSE_trains.append(MSE_train)
+			MSE_tests.append(MSE_test)
 
 			for i in range(self.epoch):
 				if self.hidden_train is not None:
@@ -98,10 +94,10 @@ class Trainer:
 					print("iter {:>3}, train loss: {:>7.3f}, test loss: {:>7.3f}, train MSE: {:>7.3f}, test MSE: {:>7.3f}"\
 						.format(i+1, loss_train, loss_test, MSE_train, MSE_test))
 
-					self.loss_trains.append(loss_train)
-					self.loss_tests.append(loss_test)
-					self.MSE_trains.append(MSE_train)
-					self.MSE_tests.append(MSE_test)
+					loss_trains.append(loss_train)
+					loss_tests.append(loss_test)
+					MSE_trains.append(MSE_train)
+					MSE_tests.append(MSE_test)
 
 				if self.store_res == True and (i+1)%self.save_freq == 0:
 					if not os.path.exists(self.RLT_DIR+"model"): os.makedirs(self.RLT_DIR+"model")
@@ -126,5 +122,8 @@ class Trainer:
 			for i in range(0, self.saving_num, self.batch_size):
 				prediction_val_test[i:i+self.batch_size] = sess.run(prediction, feed_dict={self.obs:self.obs_test[i:i+self.batch_size]})
 
-			return hidden_val_train, hidden_val_test, prediction_val_train, prediction_val_test, self.loss_trains, self.loss_tests, self.MSE_trains, self.MSE_tests
+			metrics = [loss_trains, loss_tests, MSE_trains, MSE_tests]
+			hidden_val = [hidden_val_train, hidden_val_test]
+			prediction_val = [prediction_val_train, prediction_val_test]
+			return metrics, hidden_val, prediction_val
 
