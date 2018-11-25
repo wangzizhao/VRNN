@@ -5,6 +5,7 @@ from tensorflow.contrib.integrate import odeint as tf_odeint
 
 from transformation.base import transformation
 
+
 class lorenz_transformation(transformation):
     def transform(self, Z_prev):
         '''
@@ -13,7 +14,7 @@ class lorenz_transformation(transformation):
         sigma, rho, beta, dt = self.params
 
         def lorenz_equation(Z, t, sigma, rho, beta):
-            x,y,z = Z
+            x, y, z = Z
 
             xd = sigma * (y - x)
             yd = (rho - z) * x - y
@@ -21,7 +22,7 @@ class lorenz_transformation(transformation):
 
             return [xd, yd, zd]
 
-        t = np.arange(0, 2*dt, dt)
+        t = np.arange(0, 2 * dt, dt)
         Z = odeint(lorenz_equation, Z_prev, t, args=(sigma, rho, beta))[1, :]
 
         return Z
@@ -31,7 +32,7 @@ class lorenz_transformation(transformation):
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import tensorflow as tf
-    lorenz_params = (10.0, 28.0, 8.0/3.0, 0.01)
+    lorenz_params = (10.0, 28.0, 8.0 / 3.0, 0.01)
     Dz = 3
     T = 1500
     batch_size = 10
@@ -39,9 +40,9 @@ if __name__ == "__main__":
     lorenz = lorenz_transformation(lorenz_params)
 
     Z = np.zeros((T, Dz))
-    Z[0] = np.random.uniform(low = 0, high = 1, size = Dz)
-    for t in range(1,T):
-        Z[t] = lorenz.transform(Z[t-1])
+    Z[0] = np.random.uniform(low=0, high=1, size=Dz)
+    for t in range(1, T):
+        Z[t] = lorenz.transform(Z[t - 1])
 
     plt.figure()
     plt.plot(Z[:, 0], Z[:, 1])
