@@ -59,7 +59,7 @@ def create_RLT_DIR(Experiment_params):
     return RLT_DIR
 
 
-def plot_loss(RLT_DIR, loss_trains, loss_tests):
+def plot_loss(RLT_DIR, loss_trains, loss_tests, show=False):
     plt.figure()
     plt.plot(loss_trains)
     plt.plot(loss_tests)
@@ -68,10 +68,11 @@ def plot_loss(RLT_DIR, loss_trains, loss_tests):
     plt.legend(["loss_trains", "loss_tests"])
     sns.despine()
     plt.savefig(RLT_DIR + "loss")
-    plt.show()
+    if show:
+        plt.show()
 
 
-def plot_MSE(RLT_DIR, MSE_trains, MSE_tests):
+def plot_MSE(RLT_DIR, MSE_trains, MSE_tests, show=False):
     plt.figure()
     plt.plot(MSE_trains)
     plt.plot(MSE_tests)
@@ -80,10 +81,16 @@ def plot_MSE(RLT_DIR, MSE_trains, MSE_tests):
     plt.legend(["MSE_trains", "MSE_tests"])
     sns.despine()
     plt.savefig(RLT_DIR + "MSE")
-    plt.show()
+    if show:
+        plt.show()
 
 
-def plot_loss_MSE(RLT_DIR, loss_trains, loss_tests, MSE_trains, MSE_tests):
+def plot_loss_MSE(RLT_DIR,
+                  loss_trains,
+                  loss_tests,
+                  MSE_trains,
+                  MSE_tests,
+                  show=False):
     fig, ax1 = plt.subplots()
     ax1.plot(loss_trains, color="green")
     ax1.plot(loss_tests, color="blue")
@@ -113,8 +120,11 @@ def plot_loss_MSE(RLT_DIR, loss_trains, loss_tests, MSE_trains, MSE_tests):
     fig.tight_layout()
     plt.savefig(RLT_DIR + "loss_and_MSE")
 
+    if show:
+        plt.show()
 
-def plot_hidden(RLT_DIR, predicted_hidden, true_hidden, is_test):
+
+def plot_hidden(RLT_DIR, predicted_hidden, true_hidden, is_test, show=False):
     PLT_DIR = "hidden_compare_" + ("test" if is_test else "train") + "/"
     if not os.path.exists(RLT_DIR + PLT_DIR):
         os.makedirs(RLT_DIR + PLT_DIR)
@@ -133,10 +143,12 @@ def plot_hidden(RLT_DIR, predicted_hidden, true_hidden, is_test):
                 "hidden_dim_{}_idx_{}".format(
                     j,
                     i))
+            if show:
+                plt.show()
             plt.close()
 
 
-def plot_expression(RLT_DIR, predicted_obs, true_obs, is_test):
+def plot_expression(RLT_DIR, predicted_obs, true_obs, is_test, show=False):
     PLT_DIR = "obs_compare_" + ("test" if is_test else "train") + "/"
     if not os.path.exists(RLT_DIR + PLT_DIR):
         os.makedirs(RLT_DIR + PLT_DIR)
@@ -150,11 +162,12 @@ def plot_expression(RLT_DIR, predicted_obs, true_obs, is_test):
             plt.legend(["true_obs", "predicted_obs"])
             sns.despine()
             plt.savefig(RLT_DIR + PLT_DIR + "obs_dim_{}_idx_{}".format(j, i))
+            if show:
+                plt.show()
             plt.close()
-            # plt.show()
 
 
-def plot_hidden_2d(RLT_DIR, predicted_hidden, is_test):
+def plot_hidden_2d(RLT_DIR, predicted_hidden, is_test, show=False):
     PLT_DIR = "hidden_result_2d" + ("test" if is_test else "train") + "/"
     if not os.path.exists(RLT_DIR + PLT_DIR):
         os.makedirs(RLT_DIR + PLT_DIR)
@@ -166,10 +179,12 @@ def plot_hidden_2d(RLT_DIR, predicted_hidden, is_test):
         plt.legend(["predicted_hidden"])
         sns.despine()
         plt.savefig(RLT_DIR + PLT_DIR + "hidden_idx_{}".format(i))
+        if show:
+            plt.show()
         plt.close()
 
 
-def plot_hidden_3d(RLT_DIR, predicted_hidden, is_test):
+def plot_hidden_3d(RLT_DIR, predicted_hidden, is_test, show=False):
     PLT_DIR = "hidden_result_3d" + ("test" if is_test else "train") + "/"
     if not os.path.exists(RLT_DIR + PLT_DIR):
         os.makedirs(RLT_DIR + PLT_DIR)
@@ -182,10 +197,12 @@ def plot_hidden_3d(RLT_DIR, predicted_hidden, is_test):
         ax.legend(["predicted_hidden"])
         sns.despine()
         fig.savefig(RLT_DIR + PLT_DIR + "hidden_idx_{}".format(i))
+        if show:
+            plt.show()
         plt.close()
 
 
-def plot_training_2d(RLT_DIR, true_hidden, is_test):
+def plot_training_2d(RLT_DIR, true_hidden, is_test, show=False):
     PLT_DIR = "hidden_true_2d_" + ("test" if is_test else "train") + "/"
     if not os.path.exists(RLT_DIR + PLT_DIR):
         os.makedirs(RLT_DIR + PLT_DIR)
@@ -197,10 +214,12 @@ def plot_training_2d(RLT_DIR, true_hidden, is_test):
         plt.legend(["true_hidden"])
         sns.despine()
         plt.savefig(RLT_DIR + PLT_DIR + "hidden_idx_{}".format(i))
+        if show:
+            plt.show()
         plt.close()
 
 
-def plot_training_3d(RLT_DIR, true_hidden, is_test):
+def plot_training_3d(RLT_DIR, true_hidden, is_test, show=False):
     PLT_DIR = "hidden_true_3d_" + ("test" if is_test else "train") + "/"
     if not os.path.exists(RLT_DIR + PLT_DIR):
         os.makedirs(RLT_DIR + PLT_DIR)
@@ -213,10 +232,12 @@ def plot_training_3d(RLT_DIR, true_hidden, is_test):
         ax.legend(["true_hidden"])
         sns.despine()
         fig.savefig(RLT_DIR + PLT_DIR + "hidden_idx_{}".format(i))
+        if show:
+            plt.show()
         plt.close()
 
 
-def plot_training(RLT_DIR, true_hidden, true_obs, is_test):
+def plot_training(RLT_DIR, true_hidden, true_obs, is_test, show=False):
     PLT_DIR = "training_" + ("test" if is_test else "train") + "/"
     if not os.path.exists(RLT_DIR + PLT_DIR):
         os.makedirs(RLT_DIR + PLT_DIR)
@@ -234,4 +255,6 @@ def plot_training(RLT_DIR, true_hidden, true_obs, is_test):
         plt.ylabel("hidden and obs")
         sns.despine()
         plt.savefig(RLT_DIR + PLT_DIR + "training_idx_{}".format(i))
+        if show:
+            plt.show()
         plt.close()

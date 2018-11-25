@@ -293,14 +293,12 @@ class VRNNCell(tf.contrib.rnn.LSTMBlockCell):
 class VRNN_model():
     def __init__(self,
                  VRNNCell,
-                 batch_size,
-                 n_particles,
                  initial_state_all_zero=True,
                  is_lstm_Dh=50,
                  sigma_min=1e-9):
         self.VRNNCell = VRNNCell
-        self.batch_size = batch_size
-        self.n_particles = n_particles
+        self.batch_size = VRNNCell.batch_size
+        self.n_particles = VRNNCell.n_particles
         self.initial_state_all_zero = initial_state_all_zero
         self.sigma_min = sigma_min
         self.is_lstm_Dh = is_lstm_Dh

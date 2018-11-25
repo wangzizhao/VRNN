@@ -53,7 +53,7 @@ if __name__ == "__main__":
         z_ft_Dhs = [100, 100]
         prior_Dhs = [100, 100, 100]
         enc_Dhs = [100, 100, 100]
-        decoder_Dhs = [100, 100, 100]
+        dec_Dhs = [100, 100, 100]
     else:
         Dx = 2
         Dh = 50
@@ -62,7 +62,7 @@ if __name__ == "__main__":
         z_ft_Dhs = [100]
         prior_Dhs = [100]
         enc_Dhs = [100]
-        decoder_Dhs = [100]
+        dec_Dhs = [100]
 
     initial_state_all_zero = True
     is_lstm_Dh = 50
@@ -134,13 +134,11 @@ if __name__ == "__main__":
         hidden_train, obs_train, hidden_test, obs_test = dataset
 
     # =========================== model part =========================== #
-    obs = tf.placeholder(tf.float32, shape=(batch_size, time, Dx), name="obs")
-
     myVRNNCell = VRNNCell(Dx, Dh, Dz,
                           batch_size,
                           n_particles,
                           x_ft_Dhs, z_ft_Dhs,
-                          prior_Dhs, enc_Dhs, decoder_Dhs)
+                          prior_Dhs, enc_Dhs, dec_Dhs)
     model = VRNN_model(myVRNNCell,
                        batch_size,
                        n_particles,
@@ -167,10 +165,12 @@ if __name__ == "__main__":
         RLT_DIR = create_RLT_DIR(experiment_params)
 
     # =========================== training part =========================== #
-    mytrainer = trainer(model, obs)
+    mytrainer = trainer(model)
     mytrainer.set_result_saving(RLT_DIR, save_freq, saving_num)
     mytrainer.set_data_set(hidden_train, obs_train, hidden_test, obs_test)
-    metrics, hidden_val, prediction_val = mytrainer.train()
+    metrics, hidden_val, prediction_val = mytrainer.train(lr,
+                                                          epoch,
+                                                          print_freq)
 
     loss_trains, loss_tests, MSE_trains, MSE_tests = metrics
     hidden_val_train, hidden_val_test = hidden_val
@@ -233,14 +233,12 @@ if __name__ == "__main__":
                       obs_test[0:saving_num],
                       is_test=True)
         if isinstance(f_sample_tran, fhn.fhn_transformation):
-            plot_training_2d(
-                RLT_DIR,
-                hidden_train[0:saving_num],
-                is_test=False)
-            plot_training_2d(
-                RLT_DIR,
-                hidden_test[0:saving_num],
-                is_test=True)
+            plot_training_2d(RLT_DIR,
+                             hidden_train[0:saving_num],
+                             is_test=False)
+            plot_training_2d(RLT_DIR,
+                             hidden_test[0:saving_num],
+                             is_test=True)
         if isinstance(f_sample_tran, lorenz.lorenz_transformation):
             plot_training_3d(
                 RLT_DIR,
