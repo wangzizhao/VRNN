@@ -75,7 +75,8 @@ class Trainer:
             MSE_test = self.model.get_MSE(
                 sess, prediction, self.obs, self.obs_test)
             print(
-                "iter {:>3}, train loss: {:>7.3f}, test loss: {:>7.3f}, train MSE: {:>7.3f}, test MSE: {:>7.3f}" .format(
+                "iter {:>3},train loss: {:>7.3f},test loss: {:>7.3f},"
+                "train MSE: {:>7.3f},test MSE: {:>7.3f}".format(
                     0,
                     loss_train,
                     loss_test,
@@ -108,9 +109,9 @@ class Trainer:
                     MSE_test = self.model.get_MSE(
                         sess, prediction, self.obs, self.obs_test)
                     print(
-                        "iter {:>3}, train loss: {:>7.3f}, test loss: {:>7.3f}, train MSE: {:>7.3f}, test MSE: {:>7.3f}" .format(
-                            i +
-                            1,
+                        "iter {:>3},train loss: {:>7.3f},test loss: {:>7.3f},"
+                        "train MSE: {:>7.3f},test MSE: {:>7.3f}".format(
+                            i + 1,
                             loss_train,
                             loss_test,
                             MSE_train,
@@ -137,25 +138,29 @@ class Trainer:
                 (self.saving_num, self.time, self.n_particles, self.Dz))
             for i in range(0, self.saving_num, self.batch_size):
                 hidden_val_train[i:i + self.batch_size] = sess.run(
-                    hidden, feed_dict={self.obs: self.obs_train[i:i + self.batch_size]})
+                    hidden,
+                    feed_dict={self.obs: self.obs_train[i:i+self.batch_size]})
 
             hidden_val_test = np.zeros(
                 (self.saving_num, self.time, self.n_particles, self.Dz))
             for i in range(0, self.saving_num, self.batch_size):
                 hidden_val_test[i:i + self.batch_size] = sess.run(
-                    hidden, feed_dict={self.obs: self.obs_test[i:i + self.batch_size]})
+                    hidden,
+                    feed_dict={self.obs: self.obs_test[i:i + self.batch_size]})
 
             prediction_val_train = np.zeros(
                 (self.saving_num, self.time, self.n_particles, self.Dx))
             for i in range(0, self.saving_num, self.batch_size):
                 prediction_val_train[i:i + self.batch_size] = sess.run(
-                    prediction, feed_dict={self.obs: self.obs_train[i:i + self.batch_size]})
+                    prediction,
+                    feed_dict={self.obs: self.obs_train[i:i+self.batch_size]})
 
             prediction_val_test = np.zeros(
                 (self.saving_num, self.time, self.n_particles, self.Dx))
             for i in range(0, self.saving_num, self.batch_size):
                 prediction_val_test[i:i + self.batch_size] = sess.run(
-                    prediction, feed_dict={self.obs: self.obs_test[i:i + self.batch_size]})
+                    prediction,
+                    feed_dict={self.obs: self.obs_test[i:i + self.batch_size]})
 
             metrics = [loss_trains, loss_tests, MSE_trains, MSE_tests]
             hidden_val = [hidden_val_train, hidden_val_test]

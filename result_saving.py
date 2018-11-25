@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import seaborn as sns
 
 import datetime
@@ -11,7 +10,8 @@ import os
 
 def addDateTime():
     """
-    Collection of little pythonic tools. Might need to organize this better in the future.
+    Collection of little pythonic tools.
+    Might need to organize this better in the future.
 
     @author: danielhernandez
     """
