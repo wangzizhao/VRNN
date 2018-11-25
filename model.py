@@ -1,5 +1,6 @@
 """
-some of the code is written with reference to https://github.com/phreeza/tensorflow-vrnn
+some of the code is written with reference to
+https://github.com/phreeza/tensorflow-vrnn
 """
 
 import tensorflow as tf
@@ -111,7 +112,9 @@ class VRNNCell(tf.contrib.rnn.LSTMBlockCell):
                 phi_x_expanded = tf.expand_dims(
                     phi_x, axis=1, name="phi_x_expanded")
                 phi_x_tiled = tf.tile(
-                    phi_x_expanded, (1, self.n_particles, 1), name="phi_x_tiled")
+                    phi_x_expanded,
+                    (1, self.n_particles, 1),
+                    name="phi_x_tiled")
 
             with tf.variable_scope("encoder"):
                 enc_hidden = tf.concat(values=(phi_x_tiled, h), axis=-1)
@@ -253,9 +256,13 @@ class VRNNCell(tf.contrib.rnn.LSTMBlockCell):
             # and state
             with tf.variable_scope("lstm_update"):
                 phi_x_phi_z = tf.concat(
-                    (phi_x_tiled, phi_z), axis=-1, name="phi_x_phi_z")
+                    (phi_x_tiled, phi_z),
+                    axis=-1,
+                    name="phi_x_phi_z")
                 phi_x_phi_z_flat = tf.reshape(
-                    phi_x_phi_z, (-1, self.Dx + self.Dz), name="phi_x_phi_z_flat")
+                    phi_x_phi_z,
+                    (-1, self.Dx + self.Dz),
+                    name="phi_x_phi_z_flat")
 
                 c_flat = tf.reshape(c, (-1, self.Dh), name="c_flat")
                 h_flat = tf.reshape(h, (-1, self.Dh), name="h_flat")
@@ -306,25 +313,33 @@ class VRNN_model():
         with tf.variable_scope("initial_state"):
             if self.initial_state_all_zero:
                 initial_c = tf.zeros(
-                    [self.batch_size, self.n_particles, self.VRNNCell.c_size], name="initial_c")
+                    [self.batch_size, self.n_particles, self.VRNNCell.c_size],
+                    name="initial_c")
                 initial_h = tf.zeros(
-                    [self.batch_size, self.n_particles, self.VRNNCell.h_size], name="initial_h")
+                    [self.batch_size, self.n_particles, self.VRNNCell.h_size],
+                    name="initial_h")
                 initial_state = tf.nn.rnn_cell.LSTMStateTuple(
                     initial_c, initial_h)
             else:
                 is_lstm_initial_c = tf.zeros(
-                    [self.batch_size, self.is_lstm_Dh], name="is_lstm_initial_c")
+                    [self.batch_size, self.is_lstm_Dh],
+                    name="is_lstm_initial_c")
                 is_lstm_initial_h = tf.zeros(
-                    [self.batch_size, self.is_lstm_Dh], name="is_lstm_initial_h")
+                    [self.batch_size, self.is_lstm_Dh],
+                    name="is_lstm_initial_h")
                 is_lstm_initial_state = tf.nn.rnn_cell.LSTMStateTuple(
                     is_lstm_initial_c, is_lstm_initial_h)
 
                 f_Inputs = list(Inputs[:len(Inputs) // 2])
                 b_Inputs = list(reversed(Inputs[:len(Inputs) // 2]))
                 _, f_last_state = tf.nn.static_rnn(
-                    self.is_f_lstm, f_Inputs, initial_state=is_lstm_initial_state)
+                    self.is_f_lstm,
+                    f_Inputs,
+                    initial_state=is_lstm_initial_state)
                 _, b_last_state = tf.nn.static_rnn(
-                    self.is_b_lstm, b_Inputs, initial_state=is_lstm_initial_state)
+                    self.is_b_lstm,
+                    b_Inputs,
+                    initial_state=is_lstm_initial_state)
 
                 f_last_h, b_last_h = f_last_state[1], b_last_state[1]
                 f_b_last_h = tf.concat(
@@ -341,19 +356,30 @@ class VRNN_model():
                     scope="initial_state")
 
                 initial_c_h = tf.reshape(
-                    initial_c_h_flat, [
-                        self.batch_size, 2, self.VRNNCell.c_size], name="initial_c_h")
+                    initial_c_h_flat,
+                    [self.batch_size, 2, self.VRNNCell.c_size],
+                    name="initial_c_h")
                 initial_c, initial_h = tf.unstack(
-                    initial_c_h, axis=1, name="unstack_initial_c_h")
+                    initial_c_h,
+                    axis=1,
+                    name="unstack_initial_c_h")
 
                 initial_c_expanded = tf.expand_dims(
-                    initial_c, axis=1, name="initial_c_expanded")
+                    initial_c,
+                    axis=1,
+                    name="initial_c_expanded")
                 initial_c_tiled = tf.tile(
-                    initial_c_expanded, (1, self.n_particles, 1), name="initial_c_tiled")
+                    initial_c_expanded,
+                    (1, self.n_particles, 1),
+                    name="initial_c_tiled")
                 initial_h_expanded = tf.expand_dims(
-                    initial_h, axis=1, name="initial_h_expanded")
+                    initial_h,
+                    axis=1,
+                    name="initial_h_expanded")
                 initial_h_tiled = tf.tile(
-                    initial_h_expanded, (1, self.n_particles, 1), name="initial_h_tiled")
+                    initial_h_expanded,
+                    (1, self.n_particles, 1),
+                    name="initial_h_tiled")
 
                 initial_state = tf.nn.rnn_cell.LSTMStateTuple(
                     initial_c_tiled, initial_h_tiled)
@@ -422,7 +448,10 @@ class VRNN_model():
                                          1), axis=-
                                      1, name="KL_gauss_gauss")
 
-        prior_mu, prior_sigma, enc_mu, enc_sigma, dec_mu, dec_sigma, z_sample, _ = output
+        prior_mu, prior_sigma, \
+            enc_mu, enc_sigma, \
+            dec_mu, dec_sigma, \
+            z_sample, _ = output
 
         Input_expanded = tf.expand_dims(Input, axis=2, name="Input_expanded")
         Input_tiled = tf.tile(
@@ -469,7 +498,6 @@ class VRNN_model():
     def get_loss_val(self, sess, loss, obs, obs_set):
         total_loss = 0
         for i in range(0, len(obs_set), self.batch_size):
-            batch_loss = sess.run(loss,
-                                  feed_dict={obs: obs_set[i:i + self.batch_size]})
+            batch_loss = sess.run(loss, {obs: obs_set[i:i + self.batch_size]})
             total_loss += batch_loss
         return total_loss / (len(obs_set) / self.batch_size)

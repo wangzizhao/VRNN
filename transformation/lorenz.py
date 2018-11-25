@@ -1,7 +1,5 @@
 import numpy as np
 from scipy.integrate import odeint
-import tensorflow as tf
-from tensorflow.contrib.integrate import odeint as tf_odeint
 
 from transformation.base import transformation
 
@@ -31,7 +29,6 @@ class lorenz_transformation(transformation):
 # test code
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    import tensorflow as tf
     lorenz_params = (10.0, 28.0, 8.0 / 3.0, 0.01)
     Dz = 3
     T = 1500

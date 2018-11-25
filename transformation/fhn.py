@@ -1,7 +1,5 @@
 import numpy as np
 from scipy.integrate import odeint
-import tensorflow as tf
-from tensorflow.contrib.integrate import odeint as tf_odeint
 
 from transformation.base import transformation
 
@@ -22,7 +20,8 @@ class fhn_transformation(transformation):
         Output
         Z = [V, w]
                 V - membrane voltage
-                w - recovery variable that mimics activation of an outward current
+                w - recovery variable that mimics activation
+                    of an outward current
         """
         a, b, c, I, dt = self.params
 

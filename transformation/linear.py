@@ -1,5 +1,4 @@
 import numpy as np
-import tensorflow as tf
 
 from transformation.base import transformation
 
@@ -16,7 +15,6 @@ class linear_transformation(transformation):
 # test code
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    import tensorflow as tf
     A = np.array([[0.99, 0.01], [0.01, 0.99]])
     Dz = 2
     T = 100
