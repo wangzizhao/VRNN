@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
 	initial_state_all_zero = True
 	is_lstm_Dh = 50
-	sigma_min = 1e-6
+	sigma_min = 1e-3
 
 	# printing and data saving params
 	print_freq = 1
