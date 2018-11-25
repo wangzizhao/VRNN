@@ -9,7 +9,7 @@ import os
 # define trainer to train the model given as parameter
 
 
-class Trainer:
+class trainer:
 
     def __init__(self, model, obs):
         self.model = model

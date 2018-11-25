@@ -14,7 +14,7 @@ from result_saving import plot_training
 from sampler import create_train_test_dataset
 from transformation import fhn, linear, lorenz
 from distribution import dirac_delta, mvn
-from trainer import Trainer
+from trainer import trainer
 
 # for data saving stuff
 import pickle
@@ -167,10 +167,10 @@ if __name__ == "__main__":
         RLT_DIR = create_RLT_DIR(experiment_params)
 
     # =========================== training part =========================== #
-    trainer = Trainer(model, obs)
-    trainer.set_result_saving(RLT_DIR, save_freq, saving_num)
-    trainer.set_data_set(hidden_train, obs_train, hidden_test, obs_test)
-    metrics, hidden_val, prediction_val = trainer.train()
+    mytrainer = trainer(model, obs)
+    mytrainer.set_result_saving(RLT_DIR, save_freq, saving_num)
+    mytrainer.set_data_set(hidden_train, obs_train, hidden_test, obs_test)
+    metrics, hidden_val, prediction_val = mytrainer.train()
 
     loss_trains, loss_tests, MSE_trains, MSE_tests = metrics
     hidden_val_train, hidden_val_test = hidden_val
