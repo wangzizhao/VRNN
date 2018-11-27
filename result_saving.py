@@ -59,10 +59,10 @@ def create_RLT_DIR(Experiment_params):
     return RLT_DIR
 
 
-def plot_loss(RLT_DIR, loss_trains, loss_tests, show=False):
+def plot_loss(RLT_DIR, loss_trains, loss_tests, print_freq, show=False):
     plt.figure()
-    plt.plot(loss_trains)
-    plt.plot(loss_tests)
+    plt.plot(np.arange(len(loss_trains)) * print_freq, loss_trains)
+    plt.plot(np.arange(len(loss_tests)) * print_freq, loss_tests)
     plt.xlabel("epoch")
     plt.ylabel("loss")
     plt.legend(["loss_trains", "loss_tests"])
@@ -72,10 +72,10 @@ def plot_loss(RLT_DIR, loss_trains, loss_tests, show=False):
         plt.show()
 
 
-def plot_MSE(RLT_DIR, MSE_trains, MSE_tests, show=False):
+def plot_MSE(RLT_DIR, MSE_trains, MSE_tests, print_freq, show=False):
     plt.figure()
-    plt.plot(MSE_trains)
-    plt.plot(MSE_tests)
+    plt.plot(np.arange(len(MSE_trains)) * print_freq, MSE_trains)
+    plt.plot(np.arange(len(MSE_tests)) * print_freq, MSE_tests)
     plt.xlabel("epoch")
     plt.ylabel("MSE")
     plt.legend(["MSE_trains", "MSE_tests"])
@@ -90,10 +90,12 @@ def plot_loss_MSE(RLT_DIR,
                   loss_tests,
                   MSE_trains,
                   MSE_tests,
+                  print_freq,
                   show=False):
     fig, ax1 = plt.subplots()
-    ax1.plot(loss_trains, color="green")
-    ax1.plot(loss_tests, color="blue")
+    epoch = np.arange(len(loss_trains)) * print_freq
+    ax1.plot(epoch, loss_trains, color="green")
+    ax1.plot(epoch, loss_tests, color="blue")
     ax1.set_xlabel("epoch")
     # Make the y-axis label, ticks and tick labels match the line color.
     ax1.set_ylabel("loss", color="blue")
@@ -107,10 +109,10 @@ def plot_loss_MSE(RLT_DIR,
     ax1.set_facecolor('white')
 
     ax2 = ax1.twinx()
-    ax2.plot(MSE_trains, color="green")
-    ax2.plot(MSE_tests, color="blue")
-    ax2.plot(MSE_trains, color="red")
-    ax2.plot(MSE_tests, color="orange")
+    ax2.plot(epoch, MSE_trains, color="green")
+    ax2.plot(epoch, MSE_trains, color="red")
+    ax2.plot(epoch, MSE_tests, color="blue")
+    ax2.plot(epoch, MSE_tests, color="orange")
     ax2.set_ylabel("MSE", color="orange")
     ax2.tick_params("y", colors="orange")
     ax2.legend(["loss_trains", "loss_tests", "MSE_trains",

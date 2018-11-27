@@ -287,6 +287,9 @@ if __name__ == "__main__":
         with open(RLT_DIR + 'data.p', 'wb') as f:
             pickle.dump(data_dict, f)
 
-        plot_loss(RLT_DIR, loss_trains, loss_tests)
-        plot_MSE(RLT_DIR, MSE_trains, MSE_tests)
-        plot_loss_MSE(RLT_DIR, loss_trains, loss_tests, MSE_trains, MSE_tests)
+        plot_loss(RLT_DIR, loss_trains, loss_tests, print_freq)
+        plot_MSE(RLT_DIR, MSE_trains, MSE_tests, print_freq)
+        plot_loss_MSE(RLT_DIR,
+                      loss_trains, loss_tests,
+                      MSE_trains, MSE_tests,
+                      print_freq)

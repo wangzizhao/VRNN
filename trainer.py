@@ -34,7 +34,7 @@ class trainer:
         self.hidden_test = hidden_test
         self.obs_train = obs_train
         self.obs_test = obs_test
-        self.time = hidden_train.shape[1]
+        self.time = obs_train.shape[1]
 
     def train(self, lr, epoch, print_freq):
 
@@ -76,7 +76,7 @@ class trainer:
                 sess, prediction, obs, self.obs_test)
             print(
                 "iter{:>5}, train loss:{:>7.3f}, test loss:{:>7.3f}, "
-                "train MSE:{:>7.3f}, test MSE:{:>7.3f}".format(
+                "train MSE:{:>10.6f}, test MSE:{:>10.6f}".format(
                     0,
                     loss_train,
                     loss_test,
@@ -110,7 +110,7 @@ class trainer:
                         sess, prediction, obs, self.obs_test)
                     print(
                         "iter{:>5}, train loss:{:>7.3f}, test loss:{:>7.3f}, "
-                        "train MSE:{:>7.3f}, test MSE:{:>7.3f}".format(
+                        "train MSE:{:>10.6f}, test MSE:{:>10.6f}".format(
                             i + 1,
                             loss_train,
                             loss_test,
@@ -122,7 +122,7 @@ class trainer:
                     MSE_trains.append(MSE_train)
                     MSE_tests.append(MSE_test)
 
-                if self.store_res and (i + 1) % self.save_freq == 0:
+                if False and self.store_res and (i + 1) % self.save_freq == 0:
                     if not os.path.exists(self.RLT_DIR + "model"):
                         os.makedirs(self.RLT_DIR + "model")
                     saver.save(
