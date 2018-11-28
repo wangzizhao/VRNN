@@ -8,4 +8,5 @@ results/**
 *.o*
 **/.ipynb_checkpoints/**
 **/.ipynb_checkpoints
+final-project/drafts.ipynb
 prediction.py
